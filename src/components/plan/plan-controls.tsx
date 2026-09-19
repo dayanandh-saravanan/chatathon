@@ -66,16 +66,10 @@ export function PlanControls({ quests }: PlanControlsProps) {
   }
 
   return (
-    <div className="glass-panel p-5">
-      <div className="relative z-10 flex flex-col gap-4">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="min-w-0">
-            <h2 className="text-base font-semibold">Ask the agent to plan</h2>
-            <p className="text-sm text-muted-foreground">
-              It reads the next ten days of calendar load and recovery, then places blocks only
-              where they will survive.
-            </p>
-          </div>
+    <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <h2 className="text-[13px] font-semibold">Ask the agent to plan</h2>
 
           <div className="flex flex-wrap items-center gap-2">
             <Select value={questId} onValueChange={setQuestId} disabled={quests.length === 0}>
@@ -83,7 +77,7 @@ export function PlanControls({ quests }: PlanControlsProps) {
                   primitive sets its own height under that same variant, which
                   otherwise wins and leaves the trigger 4px shorter than the
                   button beside it. */}
-              <SelectTrigger className="w-full min-w-0 rounded-full border-border bg-white/60 data-[size=default]:h-10 sm:w-[340px]">
+              <SelectTrigger className="w-full min-w-0 rounded-full border-border bg-white/60 text-[13px] data-[size=default]:h-9 sm:w-[300px]">
                 {/* Radix only resolves the selected label once the portal has
                     mounted, so the label is passed through explicitly — the
                     trigger must read correctly on the very first paint. The
@@ -105,21 +99,26 @@ export function PlanControls({ quests }: PlanControlsProps) {
             <Button
               onClick={replan}
               disabled={loading || !questId}
-              className="gradient-purple-blue h-10 rounded-full px-5 text-white shadow-soft hover:opacity-95"
+              className="h-9 rounded-full bg-primary px-4 text-[13px] text-primary-foreground shadow-soft hover:opacity-90"
             >
               {loading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <Sparkles className="size-4" />
               )}
-              {loading ? 'Reading your week' : 'Re-plan my week'}
+              {loading ? 'Reading your week' : 'Re-plan'}
             </Button>
           </div>
         </div>
 
         <AnimatePresence initial={false}>
           {error && (
-            <ResultPanel key="error" tone="muted" icon={<Moon className="size-4" />} title="Nothing came back">
+            <ResultPanel
+              key="error"
+              tone="muted"
+              icon={<Moon className="size-4" />}
+              title="Nothing came back"
+            >
               {error}
             </ResultPanel>
           )}
@@ -168,11 +167,11 @@ function ResultPanel({
       transition={{ duration: 0.3, ease: [0.17, 0.67, 0.27, 1] }}
       className="overflow-hidden"
     >
-      <div className={cn('flex gap-3 rounded-2xl border p-4', TONE[tone])}>
+      <div className={cn('flex gap-2.5 rounded-2xl border p-3', TONE[tone])}>
         <span className="mt-0.5 shrink-0">{icon}</span>
         <div className="min-w-0">
-          <p className="text-sm font-semibold">{title}</p>
-          <p className="mt-1 text-sm text-foreground/75">{children}</p>
+          <p className="text-[13px] font-semibold">{title}</p>
+          <p className="mt-0.5 text-xs leading-snug text-foreground/75">{children}</p>
         </div>
       </div>
     </motion.div>

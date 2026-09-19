@@ -35,6 +35,8 @@ export interface TeamMember {
   accent: string;
   timezone: string;
   joinedAt: Instant;
+  /** Profile photo under /people. Falls back to initials when absent. */
+  photoUrl?: string;
 }
 
 export interface Milestone {
@@ -172,7 +174,9 @@ export interface Post {
   questId: string;
   kind: PostKind;
   body: string;
-  /** Stand-in for a photo upload — keeps the demo dependency-free. */
+  /** Real photo for the post. The feed is photo-first; this is the content. */
+  photoUrl?: string;
+  /** Fallback tile when there is no photo yet. */
   glyph: string;
   minutes?: number;
   milestoneTitle?: string;

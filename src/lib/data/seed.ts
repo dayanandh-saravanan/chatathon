@@ -31,6 +31,15 @@ import {
  *   · Ryan is thriving. Nobody is ranked against him.
  */
 
+/**
+ * The team.
+ *
+ * Every member carries the conventional `/people/<handle>.jpg` path whether
+ * or not that file exists yet — photos are still arriving. `<Avatar>` falls
+ * back to the initials chip on a 404, so writing the path early means a
+ * member lights up the moment their file is dropped into `public/people/`,
+ * with no reseed and no code change.
+ */
 export const TEAM: TeamMember[] = [
   {
     id: 'u_travis',
@@ -41,6 +50,7 @@ export const TEAM: TeamMember[] = [
     accent: '262 52% 62%',
     timezone: 'America/New_York',
     joinedAt: '2024-08-19T13:00:00.000Z',
+    photoUrl: '/people/travis.jpg',
   },
   {
     id: 'u_ethan',
@@ -51,6 +61,7 @@ export const TEAM: TeamMember[] = [
     accent: '217 85% 56%',
     timezone: 'America/New_York',
     joinedAt: '2024-06-03T13:00:00.000Z',
+    photoUrl: '/people/ethan.jpg',
   },
   {
     id: 'u_ryan',
@@ -61,26 +72,29 @@ export const TEAM: TeamMember[] = [
     accent: '142 60% 48%',
     timezone: 'America/New_York',
     joinedAt: '2023-11-13T13:00:00.000Z',
+    photoUrl: '/people/ryan.jpg',
   },
   {
     id: 'u_hank',
-    name: 'Hank Delacroix',
-    handle: 'hank',
+    name: 'Henk Lam',
+    handle: 'henk',
     role: 'Platform',
-    initials: 'HD',
+    initials: 'HL',
     accent: '38 85% 52%',
     timezone: 'America/Chicago',
     joinedAt: '2024-02-05T13:00:00.000Z',
+    photoUrl: '/people/henk.jpg',
   },
   {
     id: 'u_dhan',
-    name: 'Dhan Rao',
-    handle: 'dhan',
+    name: 'Dayanandh Saravanan',
+    handle: 'dayanandh',
     role: 'Growth',
-    initials: 'DR',
+    initials: 'DS',
     accent: '336 72% 58%',
     timezone: 'America/Los_Angeles',
     joinedAt: '2024-09-30T13:00:00.000Z',
+    photoUrl: '/people/dayanandh.jpg',
   },
   {
     id: 'u_sid',
@@ -91,6 +105,7 @@ export const TEAM: TeamMember[] = [
     accent: '195 92% 52%',
     timezone: 'America/New_York',
     joinedAt: '2025-01-21T13:00:00.000Z',
+    photoUrl: '/people/sid.jpg',
   },
 ];
 
@@ -145,6 +160,23 @@ export function buildQuests(now: Date): Quest[] {
       ],
     },
     {
+      id: 'q_run',
+      ownerId: 'u_travis',
+      title: 'Run three times a week without dreading it',
+      category: 'fitness',
+      why: 'I was running four times a week two years ago and I could not tell you when I stopped.',
+      targetDate: target(10),
+      weeklyMinutesTarget: 90,
+      sessionMinutes: 30,
+      status: 'active',
+      createdAt: created(3),
+      milestones: [
+        milestone('q_run', 1, 'Three easy weeks', 'Slow enough to hold a conversation.', 9, 5, 'current'),
+        milestone('q_run', 2, 'One longer run a week', 'Forty minutes, no pace target.', 6, 0, 'locked'),
+        milestone('q_run', 3, 'A 5k that feels fine', 'Not fast. Just not miserable.', 6, 0, 'locked'),
+      ],
+    },
+    {
       id: 'q_half',
       ownerId: 'u_ryan',
       title: 'Finish a half marathon in under 2 hours',
@@ -164,7 +196,7 @@ export function buildQuests(now: Date): Quest[] {
     },
     {
       id: 'q_cook',
-      ownerId: 'u_ethan',
+      ownerId: 'u_hank',
       title: 'Cook twelve dishes I have never made',
       category: 'cooking',
       why: 'I eat the same four meals and I am bored of myself.',
@@ -181,7 +213,7 @@ export function buildQuests(now: Date): Quest[] {
     },
     {
       id: 'q_keeb',
-      ownerId: 'u_hank',
+      ownerId: 'u_ethan',
       title: 'Build a keyboard from a bare PCB',
       category: 'craft',
       why: 'I have had the parts in a drawer for four months.',
@@ -199,18 +231,18 @@ export function buildQuests(now: Date): Quest[] {
     {
       id: 'q_spanish',
       ownerId: 'u_dhan',
-      title: 'Hold a ten-minute conversation in Spanish',
-      category: 'learning',
-      why: 'Half my family speaks it and I answer in English every time.',
+      title: 'Walk every trail in the Middlesex Fells',
+      category: 'outdoors',
+      why: 'I moved here two years ago and I have seen the inside of three buildings.',
       targetDate: target(16),
       weeklyMinutesTarget: 100,
       sessionMinutes: 30,
       status: 'active',
       createdAt: created(4),
       milestones: [
-        milestone('q_spanish', 1, 'Present tense, out loud', 'Daily 10-minute speaking drills.', 8, 6, 'current'),
-        milestone('q_spanish', 2, 'Past tense survival kit', 'Enough to tell a story about yesterday.', 8, 0, 'locked'),
-        milestone('q_spanish', 3, 'Ten unscripted minutes', 'With my aunt, no English fallback.', 6, 0, 'locked'),
+        milestone('q_spanish', 1, 'The three short loops', 'Under an hour each, learn the trailheads.', 8, 6, 'current'),
+        milestone('q_spanish', 2, 'Skyline Trail end to end', 'Seven miles, one go, proper boots.', 8, 0, 'locked'),
+        milestone('q_spanish', 3, 'Every marked trail', 'Tick the last unwalked ones off the map.', 6, 0, 'locked'),
       ],
     },
     {
@@ -445,7 +477,8 @@ const HISTORY_SHAPE: Record<
   q_guitar: { weeks: 5, perWeek: 2, hitRate: 0.82, quietWeeks: 0 },
   q_half: { weeks: 6, perWeek: 3, hitRate: 0.93, quietWeeks: 0 },
   q_cook: { weeks: 4, perWeek: 2, hitRate: 0.78, quietWeeks: 0 },
-  // Hank stopped two weeks ago. This is what generates the private check-in.
+  q_run: { weeks: 3, perWeek: 2, hitRate: 0.74, quietWeeks: 0 },
+  // Ethan stopped two weeks ago. This is what generates the private check-in.
   q_keeb: { weeks: 5, perWeek: 2, hitRate: 0.7, quietWeeks: 2 },
   q_spanish: { weeks: 3, perWeek: 3, hitRate: 0.66, quietWeeks: 0 },
   q_film: { weeks: 4, perWeek: 2, hitRate: 0.85, quietWeeks: 0 },
@@ -456,6 +489,7 @@ const HISTORY_SLOTS: Record<string, Array<[number, number]>> = {
   q_guitar: [[2, 19], [4, 19], [6, 11]],
   q_half: [[1, 7], [3, 7], [6, 8]],
   q_cook: [[3, 18], [0, 17], [5, 18]],
+  q_run: [[2, 7], [5, 7], [0, 9]],
   q_keeb: [[1, 20], [4, 20], [6, 14]],
   q_spanish: [[1, 8], [2, 8], [4, 8]],
   q_film: [[5, 16], [6, 10], [3, 18]],
@@ -511,7 +545,7 @@ const POST_GLYPHS: Record<string, string[]> = {
   q_half: ['🏃', '👟', '🥵'],
   q_cook: ['🍝', '🍳', '🥘'],
   q_keeb: ['⌨️', '🔧', '🔌'],
-  q_spanish: ['🇪🇸', '📖', '🗣️'],
+  q_spanish: ['🥾', '🌲', '🗺️'],
   q_film: ['📷', '🎞️', '🖼️'],
 };
 
@@ -521,12 +555,51 @@ interface PostSeed {
   hour: number;
   kind: Post['kind'];
   body: string;
+  /**
+   * A string is a file already sitting in `public/posts`. `true` claims the
+   * conventional `/posts/<id>.jpg` path for a photo the team has not sent yet
+   * — the feed's tile falls back to the glyph on a 404, so claiming it early
+   * costs nothing and the post lights up the moment the file lands.
+   */
+  photo?: true | string;
   minutes?: number;
   milestoneTitle?: string;
   cheers: UserId[];
 }
 
 const POST_SEEDS: PostSeed[] = [
+  {
+    questId: 'q_run',
+    daysAgo: 0,
+    hour: 7,
+    kind: 'progress',
+    body: 'Out before the meetings started. Thirty minutes, slow, and the rest of the day owes me nothing.',
+    photo: '/posts/travis-run.jpg',
+    minutes: 30,
+    cheers: ['u_ryan', 'u_sid', 'u_hank'],
+  },
+  {
+    questId: 'q_spanish',
+    daysAgo: 2,
+    hour: 10,
+    kind: 'progress',
+    body: 'Third loop done. Two years here and I had never been up this side of the Fells.',
+    photo: '/posts/dhan-hike.jpg',
+    minutes: 95,
+    cheers: ['u_travis', 'u_ethan', 'u_ryan', 'u_sid'],
+  },
+  {
+    // The one post carrying a photo the team has actually sent, so the feed's
+    // photo layout is real on stage rather than six fallback tiles.
+    questId: 'q_run',
+    daysAgo: 1,
+    hour: 20,
+    kind: 'progress',
+    body: 'Swapped the run for legs. Calves have been complaining all week and this hurts less tomorrow.',
+    photo: '/posts/inbox-1.jpeg',
+    minutes: 40,
+    cheers: ['u_ryan', 'u_ethan', 'u_dhan'],
+  },
   {
     questId: 'q_half',
     daysAgo: 1,
@@ -542,6 +615,7 @@ const POST_SEEDS: PostSeed[] = [
     hour: 19,
     kind: 'progress',
     body: 'First pasta dough that did not fight me. Rolled it by hand, which took twice as long and was twice as good.',
+    photo: '/posts/hank-cooking.jpg',
     minutes: 65,
     cheers: ['u_ryan', 'u_travis', 'u_sid'],
   },
@@ -566,11 +640,11 @@ const POST_SEEDS: PostSeed[] = [
   },
   {
     questId: 'q_spanish',
-    daysAgo: 2,
+    daysAgo: 3,
     hour: 8,
     kind: 'progress',
-    body: 'Ten minutes talking to myself about my commute. Riveting content. Present tense is finally automatic.',
-    minutes: 30,
+    body: 'Early loop before work. Forty minutes and I still got to my desk before anyone else.',
+    minutes: 40,
     cheers: ['u_travis', 'u_hank'],
   },
   {
@@ -628,13 +702,16 @@ export function buildPosts(now: Date, quests: Quest[]): Post[] {
     const day = addDays(now, -seed.daysAgo);
     const createdAt = at(day, seed.hour, seededInt(`post:${i}:min`, 0, 55));
     const glyphs = POST_GLYPHS[seed.questId] ?? ['✨'];
+    // The hour is part of the id so one quest can have two posts on one day.
+    const id = `p_${seed.questId}_${seed.daysAgo}_${seed.hour}`;
 
     return {
-      id: `p_${seed.questId}_${seed.daysAgo}`,
+      id,
       authorId: quest?.ownerId ?? 'u_travis',
       questId: seed.questId,
       kind: seed.kind,
       body: seed.body,
+      photoUrl: typeof seed.photo === 'string' ? seed.photo : seed.photo ? `/posts/${id}.jpg` : undefined,
       glyph: glyphs[i % glyphs.length],
       minutes: seed.minutes,
       milestoneTitle: seed.milestoneTitle,

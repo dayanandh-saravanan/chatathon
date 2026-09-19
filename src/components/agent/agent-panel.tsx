@@ -216,24 +216,19 @@ export default function AgentDock({ viewerName, initialMessages = [] }: AgentDoc
 
 function PanelHeader({ onClose }: { onClose: () => void }) {
   return (
-    <header className="flex items-start gap-3 border-b border-border/60 px-5 py-4">
-      <span className="gradient-purple-blue flex size-9 shrink-0 items-center justify-center rounded-xl shadow-soft">
+    <header className="flex items-center gap-2.5 border-b border-border/60 px-5 py-3">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary">
         <Sparkles className="size-4 text-white" />
       </span>
       <div className="min-w-0 flex-1">
         <h2
           id="agent-panel-title"
-          className="bg-clip-text text-[17px] font-semibold tracking-tight text-transparent"
-          style={{
-            backgroundImage:
-              'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)',
-          }}
+          className="text-[15px] font-semibold tracking-[0.08em] text-foreground"
         >
           SideQuest
         </h2>
-        <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
-          Reads your calendar and your recovery, drafts quests, and finds hours you can actually
-          use.
+        <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">
+          Reads your calendar and recovery. Books what fits.
         </p>
       </div>
       <button
@@ -434,7 +429,7 @@ function Composer({
           aria-label="Send"
           className={cn(
             'flex size-9 shrink-0 items-center justify-center rounded-full text-white shadow-soft animate-smooth ease-liquid',
-            empty || pending ? 'bg-muted-foreground/30' : 'gradient-purple-blue hover:opacity-90',
+            empty || pending ? 'bg-muted-foreground/30' : 'bg-primary hover:opacity-90',
           )}
         >
           <ArrowUp className="size-4" />

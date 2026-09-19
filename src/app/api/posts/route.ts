@@ -18,6 +18,16 @@ const PostBody = z.object({
   kind: z.enum(['progress', 'milestone', 'rest', 'restart']).optional(),
   glyph: z.string().trim().min(1).max(8).optional(),
   minutes: z.number().int().positive().max(600).optional(),
+  /**
+   * A path this app already serves, normally straight from `POST /api/upload`.
+   * Absolute URLs are refused so a post can never embed a third-party pixel.
+   */
+  photoUrl: z
+    .string()
+    .trim()
+    .max(300)
+    .regex(/^\/posts\/[A-Za-z0-9._-]+$/, 'Upload the photo first.')
+    .optional(),
 });
 
 export async function POST(request: Request) {
@@ -25,7 +35,13 @@ export async function POST(request: Request) {
     const json = await request.json().catch(() => null);
     const parsed = PostBody.safeParse(json);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Pick a quest and write a line.' }, { status: 400 });
+      // A bad photo path is a different mistake from a missing quest or body,
+      // and saying so is the difference between a fixable error and a shrug.
+      const photoIssue = parsed.error.issues.find((i) => i.path[0] === 'photoUrl');
+      return NextResponse.json(
+        { error: photoIssue ? photoIssue.message : 'Pick a quest and write a line.' },
+        { status: 400 },
+      );
     }
 
     await ensureSeeded();
@@ -44,6 +60,9 @@ export async function POST(request: Request) {
       questId: quest.id,
       kind,
       body: parsed.data.body,
+      photoUrl: parsed.data.photoUrl,
+      // The glyph is the tile the feed falls back to when there is no photo,
+      // so it is written either way.
       glyph: parsed.data.glyph ?? '✨',
       minutes: parsed.data.minutes,
       milestoneTitle:

@@ -131,6 +131,37 @@ const [members, quests, events, signals, windows, posts] = await Promise.all([
 
 const milestones = quests.reduce((n, q) => n + q.milestones.length, 0);
 const cheers = posts.reduce((n, p) => n + p.cheers.length, 0);
+const memberPhotos = members.filter((m) => m.photoUrl).length;
+const postPhotos = posts.filter((p) => p.photoUrl).length;
+
+/**
+ * `photo_url` is nullable, so a broken column mapping would not raise — it
+ * would quietly return null on every row and the app would show initials
+ * forever. Compare what went in against what came back, per row: the app is
+ * usually running against this same project while the seed executes, so a
+ * count is not stable but an id-keyed lookup is.
+ */
+function checkPhotos(label, sent, loaded) {
+  const byId = new Map(loaded.map((row) => [row.id, row.photoUrl]));
+  const broken = sent
+    .filter((row) => row.photoUrl)
+    .filter((row) => byId.get(row.id) !== row.photoUrl);
+  if (broken.length === 0) return;
+  console.error(
+    `photo_url did not round-trip for ${broken.length} ${label}, e.g. ${broken[0].id}. ` +
+      `Check the column on that table.`,
+  );
+  process.exit(1);
+}
+
+checkPhotos('members', bundle.members, members);
+checkPhotos('posts', bundle.posts, posts);
+
+// Photos are served from public/, so a path that is not on disk renders the
+// glyph fallback. That is expected while the team is still sending files —
+// worth naming, not worth failing on.
+const missing = [...members.map((m) => m.photoUrl), ...posts.map((p) => p.photoUrl)]
+  .filter((url) => url && !existsSync(resolvePath(ROOT, 'public', url.slice(1))));
 
 console.log(`Seeded ${new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).host}`);
 console.table({
@@ -142,4 +173,13 @@ console.table({
   windows: windows.length,
   posts: posts.length,
   cheers,
+  memberPhotos,
+  postPhotos,
 });
+
+if (missing.length > 0) {
+  console.log(
+    `${missing.length} of ${memberPhotos + postPhotos} photo paths are not in public/ yet; ` +
+      'those surfaces fall back to initials or the glyph tile.',
+  );
+}

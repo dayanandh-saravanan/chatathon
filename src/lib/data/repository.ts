@@ -42,6 +42,7 @@ export interface Repository {
   updateQuestStatus(questId: string, status: Quest['status']): Promise<void>;
 
   insertPost(post: Post): Promise<Post>;
+  setMemberPhoto(userId: UserId, photoUrl: string | null): Promise<void>;
   setCheer(postId: string, userId: UserId, emoji: string | null): Promise<void>;
 
   dismissNudge(nudgeId: string, userId: UserId): Promise<void>;

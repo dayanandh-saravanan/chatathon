@@ -121,6 +121,11 @@ export class MemoryRepository implements Repository {
     return post;
   }
 
+  async setMemberPhoto(userId: UserId, photoUrl: string | null): Promise<void> {
+    const m = state().members.find((x) => x.id === userId);
+    if (m) m.photoUrl = photoUrl ?? undefined;
+  }
+
   async setCheer(postId: string, userId: UserId, emoji: string | null): Promise<void> {
     const post = state().posts.find((p) => p.id === postId);
     if (!post) return;

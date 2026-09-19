@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Check, Loader2, TriangleAlert, X } from 'lucide-react';
+import { Check, ChevronDown, Loader2, X } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { clockTime, durationLabel, relativeDay } from '@/lib/domain/time';
 import type { DateKey, QuestWindow } from '@/lib/domain/types';
@@ -20,9 +19,17 @@ export interface ProposalCardProps {
   index?: number;
 }
 
+/**
+ * One proposal, as a row.
+ *
+ * Day, time, quest, fit, decide — all on one line. The first rationale bullet
+ * is the summary; the rest of the reasoning and every risk stay one click away
+ * so a week of proposals is a short list rather than a page of cards.
+ */
 export function ProposalCard({ questWindow, questTitle, todayKey, index = 0 }: ProposalCardProps) {
   const router = useRouter();
   const [pending, setPending] = useState<Pending>(null);
+  const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function decide(status: 'accepted' | 'declined') {
@@ -43,119 +50,124 @@ export function ProposalCard({ questWindow, questTitle, todayKey, index = 0 }: P
   }
 
   const busy = pending !== null;
+  const [lead, ...rest] = questWindow.rationale;
+  const hasMore = rest.length > 0 || questWindow.risks.length > 0;
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: index * 0.07, ease: [0.17, 0.67, 0.27, 1] }}
-      className="glass-card hover-lift flex flex-col gap-4 rounded-2xl p-5"
+      transition={{ duration: 0.3, delay: index * 0.05, ease: [0.17, 0.67, 0.27, 1] }}
+      className="rounded-2xl border border-border bg-card/70 shadow-soft animate-smooth hover:border-primary/30"
     >
-      <header className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[11px] font-semibold tracking-wide text-primary uppercase">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2 p-3">
+        <div className="w-[136px] shrink-0">
+          <p className="truncate text-[11px] font-medium tracking-wide text-primary uppercase">
             {relativeDay(questWindow.date, todayKey)}
           </p>
-          <h3 className="mt-0.5 text-lg font-semibold tabular-nums">
+          {/* One line, always: a wrapped time range turns a row back into a card. */}
+          <p className="text-[13px] font-semibold whitespace-nowrap tabular-nums">
             {clockTime(questWindow.start)} – {clockTime(questWindow.end)}
-          </h3>
-          <p className="mt-0.5 truncate text-sm text-muted-foreground">
-            {durationLabel(questWindow.minutes)} · {questTitle}
           </p>
         </div>
+
+        {/* Shrinks to nothing on a narrow column so the row stays one line and
+            the title truncates instead — the full text is in the tooltip. */}
+        <div className="min-w-[140px] flex-1 sm:min-w-0">
+          <p className="truncate text-[13px] font-medium" title={questTitle}>
+            {questTitle}
+          </p>
+          <p className="truncate text-xs text-muted-foreground" title={lead}>
+            {durationLabel(questWindow.minutes)}
+            {lead ? ` · ${lead}` : ''}
+          </p>
+        </div>
+
         <FitChip score={questWindow.score} />
-      </header>
 
-      <section>
-        <h4 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-          Why this window
-        </h4>
-        <ul className="mt-2 space-y-1.5">
-          {questWindow.rationale.map((line) => (
-            <li key={line} className="flex gap-2 text-sm leading-snug">
-              <span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-primary/70" />
-              <span>{line}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => decide('accepted')}
+            disabled={busy}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground animate-smooth hover:opacity-90 disabled:opacity-60"
+          >
+            {pending === 'accepted' ? (
+              <Loader2 className="size-3.5 animate-spin" aria-hidden />
+            ) : (
+              <Check className="size-3.5" aria-hidden />
+            )}
+            Accept
+          </button>
+          <button
+            type="button"
+            onClick={() => decide('declined')}
+            disabled={busy}
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium text-muted-foreground animate-smooth hover:text-foreground disabled:opacity-60"
+          >
+            {pending === 'declined' ? (
+              <Loader2 className="size-3.5 animate-spin" aria-hidden />
+            ) : (
+              <X className="size-3.5" aria-hidden />
+            )}
+            Not this week
+          </button>
+          {hasMore && (
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-expanded={open}
+              aria-label={open ? 'Hide the reasoning' : 'Show the reasoning'}
+              className="rounded-full p-1 text-muted-foreground animate-smooth hover:text-foreground"
+            >
+              <ChevronDown
+                className={cn('size-4 animate-smooth', open && 'rotate-180')}
+                aria-hidden
+              />
+            </button>
+          )}
+        </div>
+      </div>
 
-      {questWindow.risks.length > 0 && (
-        <section>
-          <h4 className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-warning uppercase">
-            <TriangleAlert className="size-3" />
-            What could go wrong
-          </h4>
-          {/* The amber lives in the heading and the bullets. On this off-white
-              background `--warning` as body text sits near 2:1 against the page,
-              which is not readable at 14px, so the sentences stay on the text
-              token and the colour does the signalling. */}
-          <ul className="mt-2 space-y-1.5">
-            {questWindow.risks.map((line) => (
-              <li key={line} className="flex gap-2 text-sm leading-snug text-foreground/75">
-                <span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-warning" />
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {open && hasMore && (
+        <div className="border-t border-border px-3 py-2.5">
+          {rest.length > 0 && (
+            <ul className="flex flex-col gap-1">
+              {rest.map((line) => (
+                <li key={line} className="flex gap-1.5 text-xs leading-snug text-foreground/75">
+                  <span className="mt-1.5 size-1 shrink-0 rounded-full bg-primary/70" aria-hidden />
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {questWindow.risks.length > 0 && (
+            <ul className={cn('flex flex-col gap-1', rest.length > 0 && 'mt-1.5')}>
+              {questWindow.risks.map((line) => (
+                <li key={line} className="flex gap-1.5 text-xs leading-snug text-foreground/75">
+                  <span className="mt-1.5 size-1 shrink-0 rounded-full bg-warning" aria-hidden />
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
 
-      {error && <p className="text-sm text-danger">{error}</p>}
-
-      <footer className="mt-auto flex items-center gap-2 pt-1">
-        <Button
-          onClick={() => decide('accepted')}
-          disabled={busy}
-          className="gradient-purple-blue h-9 flex-1 rounded-full text-white shadow-soft hover:opacity-95"
-        >
-          {pending === 'accepted' ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Check className="size-4" />
-          )}
-          Accept
-        </Button>
-        <Button
-          onClick={() => decide('declined')}
-          disabled={busy}
-          variant="ghost"
-          className="h-9 rounded-full text-muted-foreground hover:text-foreground"
-        >
-          {pending === 'declined' ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <X className="size-4" />
-          )}
-          Not this week
-        </Button>
-      </footer>
+      {error && <p className="px-3 pb-2.5 text-xs text-danger">{error}</p>}
     </motion.article>
   );
 }
 
-/** The fit score is the agent's confidence, so it is shown, not hidden. */
+/** The agent's confidence in this window, shown rather than hidden. */
 function FitChip({ score }: { score: number }) {
-  const tone =
-    score >= 75
-      ? 'bg-success/10 text-success border-success/20'
-      : score >= 55
-        ? 'bg-primary/10 text-primary border-primary/20'
-        : 'bg-warning/10 text-warning border-warning/25';
-
   return (
-    <div
-      className={cn(
-        'flex shrink-0 flex-col items-center rounded-xl border px-2.5 py-1.5',
-        tone,
-      )}
+    <span
+      className="shrink-0 rounded-full border border-border bg-white/70 px-2 py-0.5 text-[11px] font-medium tabular-nums"
       title="Fit out of 100: how confident the agent is that this window survives contact with your week"
     >
-      <span className="text-base leading-none font-semibold tabular-nums">
-        {score}
-        <span className="text-[10px] font-medium opacity-70">/100</span>
-      </span>
-      <span className="text-[9px] font-semibold tracking-wide uppercase opacity-75">fit</span>
-    </div>
+      {score}
+      <span className="ml-1 text-muted-foreground">fit</span>
+    </span>
   );
 }

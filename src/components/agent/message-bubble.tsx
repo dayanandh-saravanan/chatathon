@@ -14,7 +14,7 @@ function AgentMark() {
   return (
     <span
       aria-hidden
-      className="gradient-purple-blue mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full shadow-soft"
+      className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary"
     >
       <Sparkles className="size-3 text-white" />
     </span>
@@ -50,7 +50,7 @@ export function MessageBubble({ message, children }: MessageBubbleProps) {
             'w-fit whitespace-pre-wrap text-[14px] leading-relaxed',
             isUser && 'ml-auto',
             isUser
-              ? 'gradient-purple-blue rounded-2xl rounded-br-md px-3.5 py-2.5 text-white shadow-soft'
+              ? 'rounded-2xl rounded-br-md bg-primary px-3.5 py-2.5 text-primary-foreground shadow-soft'
               : 'glass-card rounded-2xl rounded-bl-md px-3.5 py-2.5 text-foreground',
           )}
         >

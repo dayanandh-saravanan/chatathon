@@ -5,6 +5,10 @@ import { QuestCard } from '@/components/quests/quest-card';
 import { getSnapshot } from '@/lib/data/service';
 
 /**
+ * The landing page. Whatever the viewer is actually working on leads; the
+ * composer sits above it because typing a sentence and getting a ladder back
+ * is the thing to show first.
+ *
  * The world is generated relative to "now" and mutated in place by the quest
  * routes, so this page must never be prerendered at build time.
  */
@@ -21,62 +25,42 @@ export default async function QuestsPage() {
   const resting = quests.filter((q) => q.status !== 'active');
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          Quests
-        </h1>
-        <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-          The thing you were doing before the calendar filled up. Each quest is a short ladder of
-          real steps, paced to weeks rather than days, with a weekly ceiling the agent will not
-          book past.
+    <div className="space-y-4">
+      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Quests</h1>
+        <p className="text-[13px] text-muted-foreground">
+          A ladder of real steps, and a weekly ceiling the agent will not book past.
         </p>
       </header>
 
       <NewQuestForm />
 
       {active.length > 0 ? (
-        <div className="space-y-6">
-          {active.map((quest, i) => (
-            <QuestCard
-              key={quest.id}
-              quest={quest}
-              streak={streaks[quest.id]}
-              showStreakExplainer={i === 0}
-            />
+        <div className="space-y-3">
+          {active.map((quest) => (
+            <QuestCard key={quest.id} quest={quest} streak={streaks[quest.id]} />
           ))}
         </div>
       ) : (
-        <div className="glass-panel p-10 text-center">
+        <div className="glass-panel p-6 text-center">
           <div className="relative z-10">
-            <span className="gradient-purple-blue mx-auto flex size-12 items-center justify-center rounded-2xl shadow-soft">
-              <Compass className="size-6 text-white" aria-hidden />
-            </span>
-            <p className="mt-4 text-base font-medium text-foreground">No quest yet</p>
-            <p className="mx-auto mt-1 max-w-sm text-sm leading-relaxed text-muted-foreground">
-              Write down the thing you keep meaning to get back to. The agent will break it into
-              steps and then go looking for the hours.
+            <Compass className="mx-auto size-5 text-primary" aria-hidden />
+            <p className="mt-2 text-[14px] font-medium text-foreground">No quest yet</p>
+            <p className="mx-auto mt-0.5 max-w-sm text-[13px] text-muted-foreground">
+              Name the thing you keep meaning to get back to. The agent finds the hours.
             </p>
           </div>
         </div>
       )}
 
       {resting.length > 0 ? (
-        <section className="space-y-4">
-          <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Resting
+        <section className="space-y-2">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+            Resting · nothing is deleted for going quiet
           </h2>
-          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Paused and finished quests stay here. Nothing is deleted for going quiet.
-          </p>
-          <div className="space-y-6">
+          <div className="space-y-2">
             {resting.map((quest) => (
-              <QuestCard
-                key={quest.id}
-                quest={quest}
-                streak={streaks[quest.id]}
-                showStreakExplainer={false}
-              />
+              <QuestCard key={quest.id} quest={quest} streak={streaks[quest.id]} dense />
             ))}
           </div>
         </section>

@@ -20,16 +20,21 @@ import type {
 const START_HOUR = 6;
 const END_HOUR = 22;
 const HOURS = END_HOUR - START_HOUR;
-/** Pixels per hour. 40 keeps a full 6am–10pm day on screen without scrolling. */
-const HOUR_HEIGHT = 40;
+/**
+ * Pixels per hour. 26 puts a full 6am–10pm day in 416px — roughly two thirds
+ * of the old height, which is what makes the whole page fit one screen.
+ */
+const HOUR_HEIGHT = 26;
 const GRID_HEIGHT = HOURS * HOUR_HEIGHT;
 /** Below this a block cannot hold two lines of text, so it shows only a title. */
-const COMPACT_HEIGHT = 28;
+const COMPACT_HEIGHT = 26;
+/** Only every other hour is labelled; at 26px a label per row is a picket fence. */
+const LABEL_EVERY = 2;
 
-const BAND_PILL: Record<CapacityBand, string> = {
-  depleted: 'bg-danger/10 text-danger border-danger/20',
-  steady: 'bg-warning/10 text-warning border-warning/25',
-  primed: 'bg-success/10 text-success border-success/20',
+const BAND_DOT: Record<CapacityBand, string> = {
+  depleted: 'hsl(var(--danger))',
+  steady: 'hsl(var(--warning))',
+  primed: 'hsl(var(--success))',
 };
 
 interface Placed {
@@ -82,7 +87,7 @@ function assignLanes(items: Omit<Placed, 'lane' | 'lanes'>[]): Placed[] {
 
 const BLOCK_STYLE: Record<Placed['variant'], string> = {
   work: 'bg-muted-foreground/10 border border-border text-foreground/70',
-  accepted: 'gradient-purple-blue text-white border border-white/25 shadow-soft',
+  accepted: 'bg-primary text-primary-foreground border border-white/30 shadow-soft',
   proposed:
     'bg-primary/10 border-2 border-dashed border-primary/55 text-primary backdrop-blur-sm',
   missed: 'border border-dashed border-muted-foreground/30 text-muted-foreground/70',
@@ -134,20 +139,15 @@ export function WeekGrid({ days, events, windows, questTitles, todayKey }: WeekG
   }
 
   return (
-    <div className="glass-panel p-4 sm:p-5">
+    <div className="glass-panel p-4">
       <div className="relative z-10">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold">Your week</h2>
-            <p className="text-sm text-muted-foreground">
-              Grey is what work already took. Colour is what SideQuest gave back.
-            </p>
-          </div>
+        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
+          <h2 className="text-[13px] font-semibold">Your week</h2>
           <Legend />
         </div>
 
         {/* minmax(0,1fr) is what keeps seven columns from forcing a scrollbar. */}
-        <div className="grid grid-cols-[44px_repeat(7,minmax(0,1fr))] gap-x-1">
+        <div className="grid grid-cols-[34px_repeat(7,minmax(0,1fr))] gap-x-1">
           <div aria-hidden />
           {days.map((day) => (
             <DayHeader key={day.date} day={day} isToday={day.date === todayKey} />
@@ -155,7 +155,7 @@ export function WeekGrid({ days, events, windows, questTitles, todayKey }: WeekG
         </div>
 
         <div
-          className="relative mt-2 grid grid-cols-[44px_repeat(7,minmax(0,1fr))] gap-x-1"
+          className="relative mt-1.5 grid grid-cols-[34px_repeat(7,minmax(0,1fr))] gap-x-1"
           style={{ height: GRID_HEIGHT }}
         >
           <div className="pointer-events-none absolute inset-0 z-0">
@@ -169,15 +169,17 @@ export function WeekGrid({ days, events, windows, questTitles, todayKey }: WeekG
           </div>
 
           <div className="relative">
-            {hourMarks.slice(0, -1).map((h, i) => (
-              <span
-                key={h}
-                className="absolute right-1 text-[10px] font-medium tabular-nums text-muted-foreground/70"
-                style={{ top: i * HOUR_HEIGHT + 2 }}
-              >
-                {hourLabel(h)}
-              </span>
-            ))}
+            {hourMarks.slice(0, -1).map((h, i) =>
+              (h - START_HOUR) % LABEL_EVERY === 0 ? (
+                <span
+                  key={h}
+                  className="absolute right-1 text-[10px] font-medium tabular-nums text-muted-foreground/70"
+                  style={{ top: i * HOUR_HEIGHT + 1 }}
+                >
+                  {hourLabel(h)}
+                </span>
+              ) : null,
+            )}
           </div>
 
           {days.map((day) => (
@@ -210,23 +212,20 @@ function DayHeader({ day, isToday }: { day: DayCapacity; isToday: boolean }) {
     <div className="min-w-0 px-0.5 text-center">
       <div
         className={cn(
-          'text-[11px] font-semibold tracking-wide uppercase',
+          'text-[11px] font-medium tracking-wide uppercase',
           isToday ? 'text-primary' : 'text-muted-foreground',
         )}
       >
         {dayLabel(day.date)} {dayNumber}
       </div>
+      {/* The band survives as a dot, not a filled pill — seven coloured bars
+          across the top of a calendar reads as an alarm panel. */}
       <div
-        className={cn(
-          'mt-1 inline-flex w-full items-center justify-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold tabular-nums',
-          BAND_PILL[day.band],
-        )}
+        className="mt-0.5 inline-flex w-full items-center justify-center gap-1 text-[11px] font-medium tabular-nums"
         title={`${BAND_COPY[day.band].label} — ${day.headline}`}
       >
-        <span>{day.score}</span>
-        <span className="hidden truncate font-medium opacity-70 sm:inline">
-          {BAND_COPY[day.band].label}
-        </span>
+        <span className="size-1.5 rounded-full" style={{ background: BAND_DOT[day.band] }} />
+        <span className={isToday ? 'text-foreground' : 'text-muted-foreground'}>{day.score}</span>
       </div>
     </div>
   );
@@ -235,14 +234,14 @@ function DayHeader({ day, isToday }: { day: DayCapacity; isToday: boolean }) {
 function Block({ block }: { block: Placed }) {
   const top = Math.max(0, (block.startMin / 60) * HOUR_HEIGHT);
   const rawHeight = ((block.endMin - block.startMin) / 60) * HOUR_HEIGHT;
-  const height = Math.max(16, Math.min(rawHeight, GRID_HEIGHT - top));
+  const height = Math.max(12, Math.min(rawHeight, GRID_HEIGHT - top));
   const width = 100 / block.lanes;
   const compact = height < COMPACT_HEIGHT;
 
   return (
     <div
       className={cn(
-        'absolute overflow-hidden rounded-lg px-1.5 py-0.5 text-[10px] leading-tight',
+        'absolute overflow-hidden rounded-md px-1 py-px text-[9px] leading-tight',
         BLOCK_STYLE[block.variant],
       )}
       style={{
@@ -270,9 +269,9 @@ function Block({ block }: { block: Placed }) {
 
 function Legend() {
   return (
-    <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+    <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-muted-foreground">
       <LegendSwatch className="bg-muted-foreground/25" label="Work" />
-      <LegendSwatch className="gradient-purple-blue" label="On the books" />
+      <LegendSwatch className="bg-primary" label="On the books" />
       <LegendSwatch
         className="border-2 border-dashed border-primary/60 bg-primary/10"
         label="Proposed"

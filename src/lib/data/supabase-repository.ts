@@ -34,6 +34,7 @@ interface MemberRow {
   accent: string;
   timezone: string;
   joined_at: string;
+  photo_url: string | null;
 }
 
 interface MilestoneRow {
@@ -112,6 +113,7 @@ interface PostRow {
   quest_id: string;
   kind: Post['kind'];
   body: string;
+  photo_url: string | null;
   glyph: string;
   minutes: number | null;
   milestone_title: string | null;
@@ -145,6 +147,7 @@ function rowToMember(row: MemberRow): TeamMember {
     accent: row.accent,
     timezone: row.timezone,
     joinedAt: instant(row.joined_at),
+    photoUrl: row.photo_url ?? undefined,
   };
 }
 
@@ -234,6 +237,7 @@ function rowToPost(row: PostRow): Post {
     questId: row.quest_id,
     kind: row.kind,
     body: row.body,
+    photoUrl: row.photo_url ?? undefined,
     glyph: row.glyph,
     minutes: row.minutes ?? undefined,
     milestoneTitle: row.milestone_title ?? undefined,
@@ -266,6 +270,7 @@ function memberToRow(m: TeamMember): MemberRow {
     accent: m.accent,
     timezone: m.timezone,
     joined_at: m.joinedAt,
+    photo_url: m.photoUrl ?? null,
   };
 }
 
@@ -349,6 +354,7 @@ function postToRow(p: Post): Omit<PostRow, 'sq_cheers'> {
     quest_id: p.questId,
     kind: p.kind,
     body: p.body,
+    photo_url: p.photoUrl ?? null,
     glyph: p.glyph,
     minutes: p.minutes ?? null,
     milestone_title: p.milestoneTitle ?? null,
@@ -548,6 +554,15 @@ export class SupabaseRepository implements Repository {
       if (cError) throw new Error(`insertPost cheers: ${cError.message}`);
     }
     return post;
+  }
+
+  async setMemberPhoto(userId: UserId, photoUrl: string | null): Promise<void> {
+    // `null` clears the photo; every read falls back to the initials avatar.
+    const { error } = await this.db
+      .from('sq_members')
+      .update({ photo_url: photoUrl })
+      .eq('id', userId);
+    if (error) throw new Error(`setMemberPhoto: ${error.message}`);
   }
 
   async setCheer(postId: string, userId: UserId, emoji: string | null): Promise<void> {

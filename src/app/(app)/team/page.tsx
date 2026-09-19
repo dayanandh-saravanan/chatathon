@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Scale } from 'lucide-react';
 
 import { MemberCard } from '@/components/team/member-card';
 import { PulseHeader } from '@/components/team/pulse-header';
@@ -25,30 +24,17 @@ export default async function TeamPage() {
   const questsTracked = Object.keys(streaks).length;
 
   return (
-    // The route-group shell already centres and pads the column; a second
-    // container here only narrowed this page relative to the other four.
-    <div>
-      <header className="mb-7">
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Team</h1>
-        <p className="mt-1.5 text-[15px] text-muted-foreground">
-          What everyone is keeping alive outside work, and how much room this week left them.
+    <div className="space-y-4">
+      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
+        <p className="text-[13px] text-muted-foreground">
+          No leaderboard — whoever ranks last is usually having the hardest week.
         </p>
       </header>
 
       <PulseHeader pulse={pulse} questsTracked={questsTracked} />
 
-      <div className="mt-9">
-        <h2 className="text-lg font-semibold tracking-tight">Everyone</h2>
-        <p className="mt-1 flex items-start gap-2 text-sm text-muted-foreground">
-          <Scale className="mt-0.5 size-4 shrink-0" aria-hidden />
-          <span>
-            No leaderboard, on purpose — whoever ranks last is usually whoever is having the
-            hardest week, and watching that happen in public is how people quit.
-          </span>
-        </p>
-      </div>
-
-      <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (
           <MemberCard
             key={card.member.id}

@@ -9,7 +9,7 @@ import { ensureSeeded, getConversation, getViewer } from '@/lib/data/service';
  *
  * The agent dock is mounted here rather than per-page: it is fixed-positioned,
  * so it sits outside the shell's scroll container, and mounting it once is what
- * makes the agent reachable from all five routes.
+ * makes the agent reachable from every route.
  */
 export default async function AppLayout({
   children,

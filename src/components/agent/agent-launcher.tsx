@@ -53,7 +53,7 @@ export function AgentLauncher({ open, onOpen, ref }: AgentLauncherProps) {
       >
         <span
           aria-hidden
-          className="gradient-purple-blue relative z-10 flex size-10 items-center justify-center rounded-full shadow-soft"
+          className="relative z-10 flex size-10 items-center justify-center rounded-full bg-primary shadow-soft"
         >
           <Sparkles className="size-5 text-white" />
         </span>

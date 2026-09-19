@@ -1,8 +1,6 @@
 import {
   BookOpen,
-  CalendarDays,
   ChefHat,
-  Clock,
   Dumbbell,
   Hammer,
   Mountain,
@@ -18,38 +16,25 @@ import { clamp, durationLabel, shortDate } from '@/lib/domain/time';
 import type { Quest, QuestCategory, QuestStreak } from '@/lib/domain/types';
 import { cn } from '@/lib/utils';
 
-/**
- * Category colours come from the chart tokens rather than new hex values, so a
- * quest chip can never drift away from the rest of the palette.
- */
-const CATEGORY: Record<QuestCategory, { label: string; icon: LucideIcon; token: string }> = {
-  music: { label: 'Music', icon: Music, token: '--chart-1' },
-  fitness: { label: 'Fitness', icon: Dumbbell, token: '--success' },
-  craft: { label: 'Craft', icon: Hammer, token: '--warning' },
-  outdoors: { label: 'Outdoors', icon: Mountain, token: '--chart-3' },
-  cooking: { label: 'Cooking', icon: ChefHat, token: '--chart-4' },
-  learning: { label: 'Learning', icon: BookOpen, token: '--secondary' },
-  art: { label: 'Art', icon: Palette, token: '--chart-5' },
-  other: { label: 'Side quest', icon: Sparkles, token: '--chart-2' },
+const CATEGORY: Record<QuestCategory, { label: string; icon: LucideIcon }> = {
+  music: { label: 'Music', icon: Music },
+  fitness: { label: 'Fitness', icon: Dumbbell },
+  craft: { label: 'Craft', icon: Hammer },
+  outdoors: { label: 'Outdoors', icon: Mountain },
+  cooking: { label: 'Cooking', icon: ChefHat },
+  learning: { label: 'Learning', icon: BookOpen },
+  art: { label: 'Art', icon: Palette },
+  other: { label: 'Side quest', icon: Sparkles },
 };
 
-/** How much of the bar sits past the ceiling, so the ceiling is a line you can see room beyond. */
+/** Where the ceiling sits on the track, so there is visible room beyond it. */
 const CEILING_STOP = 80;
-
-function MetaChip({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground">
-      <Icon className="size-3.5" aria-hidden />
-      {children}
-    </span>
-  );
-}
 
 /**
  * The weekly target is drawn as a ceiling, not a goal line. Every other habit
- * tracker draws a bar you are failing to fill; this one draws a bar with a lid
- * on it, because the agent's job is to stop booking at that line rather than to
- * push you past it.
+ * tracker draws a bar you are failing to fill; this one draws a bar with a lid,
+ * because the agent's job is to stop booking at that line rather than push you
+ * past it. One caption line carries the numbers with their scope.
  */
 function CeilingBar({ quest, streak }: { quest: Quest; streak: QuestStreak }) {
   const target = quest.weeklyMinutesTarget;
@@ -57,32 +42,14 @@ function CeilingBar({ quest, streak }: { quest: Quest; streak: QuestStreak }) {
   const barMax = target * (100 / CEILING_STOP);
   const fill = clamp(barMax > 0 ? (logged / barMax) * 100 : 0, 0, 100);
   const over = logged > target;
+  const sessions = `${streak.sessionsThisWeek} ${streak.sessionsThisWeek === 1 ? 'session' : 'sessions'}`;
 
   return (
     <div>
-      {/* The label is anchored over the cap rather than at the end of the track,
-          so nobody reads the track's end as the ceiling. */}
-      <div className="flex">
-        <div className="flex justify-end" style={{ width: `${CEILING_STOP}%` }}>
-          <span className="translate-x-1/2 whitespace-nowrap text-[11px] font-medium text-muted-foreground">
-            Ceiling {durationLabel(target)}
-          </span>
-        </div>
-      </div>
-
-      <div className="relative mt-1 h-2 w-full">
+      <div className="relative h-1.5 w-full">
         <div className="absolute inset-0 overflow-hidden rounded-full bg-border">
           <div
-            aria-hidden
-            className="absolute inset-y-0 right-0"
-            style={{
-              width: `${100 - CEILING_STOP}%`,
-              backgroundImage:
-                'repeating-linear-gradient(135deg, hsl(var(--muted-foreground) / 0.25) 0 1.5px, transparent 1.5px 6px)',
-            }}
-          />
-          <div
-            className="gradient-purple-blue absolute inset-y-0 left-0 rounded-full"
+            className="absolute inset-y-0 left-0 rounded-full bg-primary"
             style={{ width: `${Math.min(fill, CEILING_STOP)}%` }}
           />
           {over ? (
@@ -95,27 +62,16 @@ function CeilingBar({ quest, streak }: { quest: Quest; streak: QuestStreak }) {
         {/* Drawn outside the clipped track so it reads as a lid on the bar. */}
         <span
           aria-hidden
-          className="absolute -top-1 -bottom-1 w-[2px] -translate-x-1/2 rounded-full bg-foreground/60"
+          className="absolute -top-1 -bottom-1 w-[2px] -translate-x-1/2 rounded-full bg-foreground/50"
           style={{ left: `${CEILING_STOP}%` }}
         />
       </div>
 
-      <p className="mt-2.5 text-sm text-foreground">
-        <span className="font-medium">{durationLabel(logged)}</span>
-        <span className="text-muted-foreground">
-          {' '}
-          this week across {streak.sessionsThisWeek}{' '}
-          {streak.sessionsThisWeek === 1 ? 'session' : 'sessions'}
-        </span>
-      </p>
-
-      {/* `--warning` is a fill colour in this system — as 12px text on the
-          off-white page it lands near 2:1, so the over-ceiling sentence borrows
-          the readable text token and the bar above it carries the amber. */}
-      <p className={cn('mt-1 text-xs leading-snug', over ? 'text-foreground/80' : 'text-muted-foreground')}>
-        {over
-          ? `You are ${durationLabel(logged - target)} past your own ceiling. Nothing more gets booked this week.`
-          : 'A ceiling, not a quota. SideQuest stops booking at this line even on a good week.'}
+      <p className="mt-2 text-[12px] leading-5 text-muted-foreground">
+        <span className="font-medium tabular-nums text-foreground">{durationLabel(logged)}</span>{' '}
+        of a <span className="tabular-nums">{durationLabel(target)}</span> weekly ceiling,{' '}
+        {sessions} this week
+        {over ? ' — nothing more gets booked' : null}
       </p>
     </div>
   );
@@ -124,68 +80,66 @@ function CeilingBar({ quest, streak }: { quest: Quest; streak: QuestStreak }) {
 interface QuestCardProps {
   quest: Quest;
   streak?: QuestStreak;
-  /** The weeks-not-days explainer only earns its space once per page. */
-  showStreakExplainer?: boolean;
+  /** Paused and finished quests get the title and the why, nothing else. */
+  dense?: boolean;
 }
 
-export function QuestCard({ quest, streak, showStreakExplainer = true }: QuestCardProps) {
+export function QuestCard({ quest, streak, dense = false }: QuestCardProps) {
   const category = CATEGORY[quest.category];
   const CategoryIcon = category.icon;
 
   return (
-    <article className="glass-panel hover-lift p-6 sm:p-7">
+    <article
+      className={cn(
+        'glass-panel animate-smooth',
+        dense ? 'p-4' : 'hover-lift p-5',
+      )}
+    >
       <div className="relative z-10">
-        {/* Stacked on narrow screens: side by side, the badge's explainer starves
-            the title down to one word per line. */}
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 sm:flex-1">
-            <span
-              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
-              style={{
-                backgroundColor: `hsl(var(${category.token}) / 0.12)`,
-                color: `hsl(var(${category.token}))`,
-              }}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2
+              className={cn(
+                'truncate font-semibold leading-tight tracking-tight text-foreground',
+                dense ? 'text-[15px]' : 'text-lg',
+              )}
             >
-              <CategoryIcon className="size-3.5" aria-hidden />
-              {category.label}
-            </span>
-
-            <h2 className="mt-3 text-xl font-semibold leading-tight tracking-tight text-foreground sm:text-2xl">
               {quest.title}
             </h2>
+            <p className="mt-1 flex items-center gap-1.5 text-[12px] text-muted-foreground">
+              <CategoryIcon className="size-3.5 shrink-0" aria-hidden />
+              <span className="truncate">
+                {category.label} · {durationLabel(quest.sessionMinutes)} sessions · target{' '}
+                {shortDate(quest.targetDate)}
+              </span>
+            </p>
           </div>
 
           {streak ? (
-            <StreakBadge
-              streak={streak}
-              showExplainer={showStreakExplainer}
-              className="sm:shrink-0"
-            />
+            <StreakBadge streak={streak} showHealth={!dense} className="mt-0.5 shrink-0" />
           ) : null}
-        </header>
+        </div>
 
         {/* Their own sentence, never rewritten by the agent — it is the only
             thing on this card that survives a bad week. */}
-        <blockquote className="mt-4 border-l-2 border-primary/30 pl-4 text-[15px] italic leading-relaxed text-muted-foreground">
+        <p className="mt-3 line-clamp-1 border-l-2 border-primary/25 pl-3 text-[13px] italic leading-5 text-muted-foreground">
           {quest.why}
-        </blockquote>
+        </p>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <MetaChip icon={CalendarDays}>Target {shortDate(quest.targetDate)}</MetaChip>
-          <MetaChip icon={Clock}>{durationLabel(quest.sessionMinutes)} sessions</MetaChip>
-        </div>
+        {!dense ? (
+          <>
+            <div className="mt-4">
+              <CeilingBar quest={quest} streak={streak ?? emptyStreak(quest)} />
+            </div>
 
-        <div className="mt-6">
-          <CeilingBar quest={quest} streak={streak ?? emptyStreak(quest)} />
-        </div>
-
-        {quest.milestones.length > 0 ? (
-          <div className="mt-6 border-t border-border pt-6">
-            <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              The ladder
-            </h3>
-            <MilestoneLadder milestones={quest.milestones} />
-          </div>
+            {quest.milestones.length > 0 ? (
+              <MilestoneLadder
+                milestones={quest.milestones}
+                collapsible
+                className="mt-4 border-t border-border pt-3"
+              />
+            ) : null}
+          </>
         ) : null}
       </div>
     </article>

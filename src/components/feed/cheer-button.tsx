@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils';
 
 /** The one emoji this button adds. Cheering is a toggle, not a reaction menu. */
 const CHEER_EMOJI = '🔥';
-const MAX_STACKED = 4;
 
 interface CheerButtonProps {
   postId: string;
@@ -42,9 +41,6 @@ export function CheerButton({ postId, cheers, viewerId }: CheerButtonProps) {
   }
 
   const others = cheers.filter((c) => c.userId !== viewerId);
-  const stacked = Array.from(
-    new Set([...(mine ? [mine] : []), ...others.map((c) => c.emoji)]),
-  ).slice(0, MAX_STACKED);
   const count = others.length + (mine ? 1 : 0);
 
   async function toggle() {
@@ -71,38 +67,24 @@ export function CheerButton({ postId, cheers, viewerId }: CheerButtonProps) {
       type="button"
       onClick={toggle}
       disabled={pending}
-      whileTap={{ scale: 0.96 }}
+      whileTap={{ scale: 0.94 }}
       transition={{ type: 'spring', stiffness: 420, damping: 26 }}
       aria-pressed={Boolean(mine)}
       aria-label={mine ? 'Remove your cheer' : 'Cheer this'}
       className={cn(
-        'group inline-flex items-center gap-2 rounded-full border px-3 py-1.5',
+        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5',
         'animate-smooth ease-liquid disabled:opacity-60',
         mine
           ? 'border-primary/30 bg-primary/10 text-primary'
           : 'border-border bg-white/60 text-muted-foreground hover:border-primary/25 hover:text-foreground',
       )}
     >
-      {stacked.length > 0 ? (
-        <span className="flex -space-x-1.5">
-          {stacked.map((emoji, i) => (
-            <span
-              key={`${emoji}-${i}`}
-              aria-hidden
-              className="grid size-6 place-items-center rounded-full bg-white/90 text-[11px] shadow-soft ring-1 ring-black/[0.04]"
-            >
-              {emoji}
-            </span>
-          ))}
-        </span>
-      ) : (
-        <span aria-hidden className="text-sm opacity-50 grayscale">
-          {CHEER_EMOJI}
-        </span>
-      )}
-      <span className="text-xs font-medium tabular-nums">
-        {count > 0 ? count : 'Cheer'}
+      <span aria-hidden className={cn('text-[11px]', mine ? '' : 'opacity-50 grayscale')}>
+        {CHEER_EMOJI}
       </span>
+      {count > 0 ? (
+        <span className="text-[11px] font-medium tabular-nums">{count}</span>
+      ) : null}
     </motion.button>
   );
 }

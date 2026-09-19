@@ -16,7 +16,9 @@ import type { NextConfig } from "next";
 process.env.TZ = process.env.TZ ?? "America/New_York";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // The dev overlay parks itself bottom-left, directly over the sidebar's
+  // viewer chip — the avatar the team asked for. Move it out of the demo.
+  devIndicators: { position: 'top-right' },
 };
 
 export default nextConfig;

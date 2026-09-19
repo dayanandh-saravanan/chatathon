@@ -25,7 +25,7 @@ import {
   getSnapshot,
 } from '@/lib/data/service';
 
-import { complete, completeJSON, isLLMEnabled } from './provider';
+import { activeProvider, complete, completeJSON, isLLMEnabled } from './provider';
 import {
   describePlan,
   fallbackMilestones,
@@ -46,7 +46,9 @@ import {
   questLine,
 } from './prompts';
 
-export { isLLMEnabled };
+export { activeProvider, isLLMEnabled };
+export type { ProviderName } from './provider';
+export { isVoiceEnabled } from './voice';
 
 /**
  * The agent.
@@ -60,6 +62,18 @@ export { isLLMEnabled };
 /* -------------------------------------------------------------------------- */
 /* Drafting a quest                                                            */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Models add a trailing period and wrap titles in quotes no matter how plainly
+ * the prompt forbids both. Cheaper to strip than to re-ask.
+ */
+function cleanTitle(raw: string): string {
+  return raw
+    .trim()
+    .replace(/^["'\u201c\u2018]+|["'\u201d\u2019]+$/g, '')
+    .replace(/[.\s]+$/, '')
+    .trim();
+}
 
 const QuestDraftSchema = z.object({
   title: z.string().trim().min(3).max(90),
@@ -92,12 +106,19 @@ export async function draftQuestFromGoal(goalText: string, ownerId: UserId): Pro
       user: questDraftPrompt(goalText, category, drafts),
       schema: QuestDraftSchema,
     });
-    // Wording only. Session estimates and the length of the ladder stay ours,
-    // and anything that fails validation is dropped without comment.
-    if (improved) {
-      title = improved.title;
-      improved.milestones.slice(0, drafts.length).forEach((m, i) => {
-        drafts[i] = { ...drafts[i], title: m.title, detail: m.detail };
+    /**
+     * Wording only. Session estimates and the length of the ladder stay ours.
+     *
+     * The ladder is all-or-nothing: a partial rewrite leaves rung one specific
+     * to their words and rung three still reading like a placeholder, which is
+     * worse than leaving all four generic. Anything that fails validation is
+     * dropped without comment.
+     */
+    if (improved && improved.milestones.length === drafts.length) {
+      const cleaned = cleanTitle(improved.title);
+      if (cleaned.length >= 3) title = cleaned;
+      improved.milestones.forEach((m, i) => {
+        drafts[i] = { ...drafts[i], title: cleanTitle(m.title), detail: m.detail.trim() };
       });
     }
   }
@@ -229,28 +250,27 @@ function capacityFacts(capacity: DayCapacity): string[] {
 
 function todayDraft(snapshot: MemberSnapshot, nudge: Nudge | undefined): string {
   const capacity = snapshot.today;
-  const weakest = [...capacity.factors].sort((a, b) => a.normalised - b.normalised)[0];
   const todayKey = capacity.date;
   const held = snapshot.windows.find(
     (w) => w.date === todayKey && (w.status === 'accepted' || w.status === 'proposed'),
   );
 
+  /**
+   * The headline is already built from the weakest factor, so naming that
+   * factor again here just says the same thing twice. The raw metric still
+   * reaches the model through FACTS, where it costs the reader nothing.
+   */
   const parts = [
-    `Capacity is ${capacity.score} out of 100 today, which reads ${BAND_COPY[capacity.band].label.toLowerCase()}.`,
+    `Capacity is ${capacity.score} out of 100 today — ${BAND_COPY[capacity.band].label.toLowerCase()}.`,
     capacity.headline,
-    `Biggest drag: ${weakest.detail}.`,
   ];
 
   if (capacity.dailyBudgetMinutes === 0) {
-    parts.push(
-      'So I am leaving your evening alone. Play anyway if you want to — I am just not going to put it on the calendar and make it another thing you owe.',
-    );
+    parts.push('So I am not booking anything. Play anyway if you want — I just will not make it something you owe.');
   } else if (held) {
-    parts.push(
-      `You have ${durationLabel(held.minutes)} held at ${clockTime(held.start)}, and it still looks reasonable.`,
-    );
+    parts.push(`You have ${durationLabel(held.minutes)} held at ${clockTime(held.start)}. Still looks right.`);
   } else {
-    parts.push(`There is room for about ${durationLabel(capacity.dailyBudgetMinutes)} if you want it.`);
+    parts.push(`Room for about ${durationLabel(capacity.dailyBudgetMinutes)} if you want it.`);
   }
 
   if (nudge) parts.push(nudgeSentence(nudge));
@@ -276,9 +296,9 @@ function generalDraft(snapshot: MemberSnapshot, quest: Quest | undefined, nudge:
         `"${quest.title}" is ${HEALTH_COPY[streak.health].label.toLowerCase()} — ${streak.weeks} ${streak.weeks === 1 ? 'week' : 'weeks'} running, ${durationLabel(streak.minutesThisWeek)} logged this week against a ${durationLabel(quest.weeklyMinutesTarget)} ceiling.`,
       );
     }
-    parts.push('Ask me to plan it and I will look at the rest of the week.');
+    parts.push('Ask me to plan it and I will take the rest of the week into account.');
   } else {
-    parts.push('Tell me what you were doing before work ate it, and I will build a ladder for it.');
+    parts.push('Tell me what you were doing before work ate it and I will build the ladder.');
   }
 
   if (nudge) parts.push(nudgeSentence(nudge));
@@ -308,7 +328,7 @@ async function buildReply(
       `Milestone ladder: ${quest.milestones.map((m) => m.title).join('; ')}.`,
     );
 
-    let draft = `Started it: "${quest.title}". ${quest.milestones.length} rungs, beginning with "${quest.milestones[0].title}", on ${quest.sessionMinutes}-minute sessions with a ${durationLabel(quest.weeklyMinutesTarget)} weekly ceiling I will stay under.`;
+    let draft = `Started "${quest.title}". ${quest.milestones.length} rungs, first is "${quest.milestones[0].title}". ${quest.sessionMinutes}-minute sessions, ${durationLabel(quest.weeklyMinutesTarget)} a week as a ceiling.`;
 
     // Plan it straight away — a quest with no time attached is a to-do list.
     const plan = await planQuest(quest.id, userId);
@@ -324,8 +344,7 @@ async function buildReply(
     const quest = pickQuest(snapshot, message);
     if (!quest) {
       return {
-        draft:
-          'There is no active quest to plan yet. Tell me the thing you keep meaning to get back to and I will put a ladder under it.',
+        draft: 'No active quest yet. Tell me what you keep meaning to get back to and I will build the ladder.',
         facts,
         actions: [{ type: 'none' }],
       };
