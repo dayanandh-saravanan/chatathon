@@ -6,7 +6,7 @@
  *
  * Safe to re-run: `reseed` wipes every `sq_*` table first. Re-running is in
  * fact the point — the dataset is generated relative to "now", so seeding again
- * re-centres the narrative (today is a wall, Hank went quiet 13 days ago) on
+ * re-centres the narrative (today is a wall, Ethan went quiet two weeks ago) on
  * the day you are demoing.
  *
  * The dataset builders and the row mapping are TypeScript and live in `src/`.

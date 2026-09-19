@@ -115,16 +115,16 @@ Pause here. Do not rush this beat.
 > ceiling it stays under, never a quota it fills. It is trying to under-prescribe.
 > That is how the habit survives past week three.**
 
-### Beat 3 — Hank went quiet (about 50 seconds)
+### Beat 3 — Ethan went quiet (about 50 seconds)
 
-[Go back to **Today**. Scroll to the nudge.]
+[Go to **Plan**. Scroll to the nudge.]
 
 > **Last piece. This is private, and only I can see it.**
 >
-> **Hank has not touched their keyboard build in thirteen days. Their streak
-> ended, and their calendar has been brutal.**
+> **Ethan has not touched the piano in two weeks. Their streak ended, and
+> their calendar has been brutal.**
 >
-> **The agent did not post that anywhere. It did not rank Hank against anyone.
+> **The agent did not post that anywhere. It did not rank Ethan against anyone.
 > It picked one teammate — me — and asked me to check in, and it showed me the
 > signals so I know what I am walking into.**
 
@@ -196,7 +196,7 @@ Result: zero minutes scheduled tonight.
 hobby time, not time blocked out. Read the exact figure off the team pulse on
 `/team` — it moves with the week.
 
-**3. One private check-in — Hank, thirteen days quiet.** Sent to exactly one
+**3. One private check-in — Ethan, two weeks quiet on piano.** Sent to exactly one
 teammate, with the signals attached. Nothing public, nothing ranked.
 
 ---

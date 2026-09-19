@@ -27,18 +27,15 @@ import {
  *
  * The narrative is deliberate — it is what gets demoed:
  *   · Travis is mid-streak and today is a wall. The agent refuses to schedule.
- *   · Hank has gone quiet for 13 days. One teammate gets told, privately.
+ *   · Ethan has gone quiet on piano for two weeks. One teammate gets told, privately.
  *   · Ryan is thriving. Nobody is ranked against him.
  */
 
 /**
  * The team.
  *
- * Every member carries the conventional `/people/<handle>.jpg` path whether
- * or not that file exists yet — photos are still arriving. `<Avatar>` falls
- * back to the initials chip on a 404, so writing the path early means a
- * member lights up the moment their file is dropped into `public/people/`,
- * with no reseed and no code change.
+ * Five real people. Every member's photo lives at `/people/<handle>.jpg`;
+ * `<Avatar>` falls back to an initials chip if a file ever goes missing.
  */
 export const TEAM: TeamMember[] = [
   {
@@ -54,10 +51,10 @@ export const TEAM: TeamMember[] = [
   },
   {
     id: 'u_ethan',
-    name: 'Ethan Alvarez',
+    name: 'Ethan Torres',
     handle: 'ethan',
     role: 'Design',
-    initials: 'EA',
+    initials: 'ET',
     accent: '217 85% 56%',
     timezone: 'America/New_York',
     joinedAt: '2024-06-03T13:00:00.000Z',
@@ -65,10 +62,10 @@ export const TEAM: TeamMember[] = [
   },
   {
     id: 'u_ryan',
-    name: 'Ryan Okafor',
+    name: 'Ryan Zhang',
     handle: 'ryan',
     role: 'Data',
-    initials: 'RO',
+    initials: 'RZ',
     accent: '142 60% 48%',
     timezone: 'America/New_York',
     joinedAt: '2023-11-13T13:00:00.000Z',
@@ -95,17 +92,6 @@ export const TEAM: TeamMember[] = [
     timezone: 'America/Los_Angeles',
     joinedAt: '2024-09-30T13:00:00.000Z',
     photoUrl: '/people/dayanandh.jpg',
-  },
-  {
-    id: 'u_sid',
-    name: 'Sid Kaur',
-    handle: 'sid',
-    role: 'Support Lead',
-    initials: 'SK',
-    accent: '195 92% 52%',
-    timezone: 'America/New_York',
-    joinedAt: '2025-01-21T13:00:00.000Z',
-    photoUrl: '/people/sid.jpg',
   },
 ];
 
@@ -177,21 +163,21 @@ export function buildQuests(now: Date): Quest[] {
       ],
     },
     {
-      id: 'q_half',
+      id: 'q_swim',
       ownerId: 'u_ryan',
-      title: 'Finish a half marathon in under 2 hours',
+      title: 'Swim a masters meet again',
       category: 'fitness',
-      why: 'Signed up with my brother. He is faster than me and will not let it go.',
+      why: 'I swam for twelve years and then just stopped. The pool is four minutes from my desk.',
       targetDate: target(14),
       weeklyMinutesTarget: 180,
       sessionMinutes: 55,
       status: 'active',
       createdAt: created(8),
       milestones: [
-        milestone('q_half', 1, 'Base: 15km weeks', 'Four easy runs, no pace pressure.', 10, 10, 'done'),
-        milestone('q_half', 2, '10km continuous', 'Under 58 minutes, conversational.', 8, 8, 'done'),
-        milestone('q_half', 3, '16km long run', 'Fuel practice on the second hour.', 8, 4, 'current'),
-        milestone('q_half', 4, 'Race pace tune-up', 'Two 5km repeats at 5:40/km.', 6, 0, 'locked'),
+        milestone('q_swim', 1, 'Three swims a week', 'Easy yardage, no clock.', 10, 10, 'done'),
+        milestone('q_swim', 2, 'Enter one meet', 'Any event, any time. Just be on the blocks.', 8, 8, 'done'),
+        milestone('q_swim', 3, 'Dryland twice a week', 'Legs and shoulders, so the pool does not wreck me.', 8, 4, 'current'),
+        milestone('q_swim', 4, '100 free under a minute', 'Slower than seventeen-year-old me. That is fine.', 6, 0, 'locked'),
       ],
     },
     {
@@ -212,24 +198,42 @@ export function buildQuests(now: Date): Quest[] {
       ],
     },
     {
-      id: 'q_keeb',
+      id: 'q_piano',
       ownerId: 'u_ethan',
-      title: 'Build a keyboard from a bare PCB',
-      category: 'craft',
-      why: 'I have had the parts in a drawer for four months.',
-      targetDate: target(6),
-      weeklyMinutesTarget: 90,
+      title: 'Play Clair de Lune start to finish',
+      category: 'music',
+      why: 'Ten years of lessons and I can play the first page from memory and nothing else.',
+      targetDate: target(12),
+      weeklyMinutesTarget: 120,
       sessionMinutes: 45,
       status: 'active',
       createdAt: created(7),
       milestones: [
-        milestone('q_keeb', 1, 'Solder the switches', 'Sixty-eight joints, no bridges.', 4, 4, 'done'),
-        milestone('q_keeb', 2, 'Flash the firmware', 'QMK layout compiled and flashed.', 3, 1, 'current'),
-        milestone('q_keeb', 3, 'Tune and lube', 'Stabilisers, foam, case fit.', 3, 0, 'locked'),
+        milestone('q_piano', 1, 'First page, hands together', 'Slow, no pedal, no cheating.', 6, 6, 'done'),
+        milestone('q_piano', 2, 'The middle section', 'The arpeggios, at half tempo.', 8, 3, 'current'),
+        milestone('q_piano', 3, 'End to end, any tempo', 'Every note, with the pedal.', 8, 0, 'locked'),
+        milestone('q_piano', 4, 'Play it for someone', 'One person, no phone recording.', 4, 0, 'locked'),
       ],
     },
     {
-      id: 'q_spanish',
+      id: 'q_ride',
+      ownerId: 'u_ethan',
+      title: 'Ride once a month',
+      category: 'outdoors',
+      why: 'I rode every weekend until I was twelve. Then school happened, then work happened.',
+      targetDate: target(20),
+      weeklyMinutesTarget: 60,
+      sessionMinutes: 60,
+      status: 'active',
+      createdAt: created(2),
+      milestones: [
+        milestone('q_ride', 1, 'Back in the saddle', 'One ride. Anywhere. Do not fall off.', 1, 1, 'done'),
+        milestone('q_ride', 2, 'Find a barn near Boston', 'Somewhere reachable without a car.', 2, 0, 'current'),
+        milestone('q_ride', 3, 'Six rides in six months', 'A month is a habit if it survives the winter.', 6, 0, 'locked'),
+      ],
+    },
+    {
+      id: 'q_hike',
       ownerId: 'u_dhan',
       title: 'Walk every trail in the Middlesex Fells',
       category: 'outdoors',
@@ -240,26 +244,26 @@ export function buildQuests(now: Date): Quest[] {
       status: 'active',
       createdAt: created(4),
       milestones: [
-        milestone('q_spanish', 1, 'The three short loops', 'Under an hour each, learn the trailheads.', 8, 6, 'current'),
-        milestone('q_spanish', 2, 'Skyline Trail end to end', 'Seven miles, one go, proper boots.', 8, 0, 'locked'),
-        milestone('q_spanish', 3, 'Every marked trail', 'Tick the last unwalked ones off the map.', 6, 0, 'locked'),
+        milestone('q_hike', 1, 'The three short loops', 'Under an hour each, learn the trailheads.', 8, 6, 'current'),
+        milestone('q_hike', 2, 'Skyline Trail end to end', 'Seven miles, one go, proper boots.', 8, 0, 'locked'),
+        milestone('q_hike', 3, 'Every marked trail', 'Tick the last unwalked ones off the map.', 6, 0, 'locked'),
       ],
     },
     {
-      id: 'q_film',
-      ownerId: 'u_sid',
-      title: 'Shoot and develop five rolls of film',
-      category: 'art',
-      why: 'My phone camera made me stop looking at things properly.',
-      targetDate: target(9),
+      id: 'q_lift',
+      ownerId: 'u_hank',
+      title: 'Lift three mornings a week',
+      category: 'fitness',
+      why: 'On-call ate the evenings, so the mornings are the only slot nobody can take.',
+      targetDate: target(10),
       weeklyMinutesTarget: 120,
-      sessionMinutes: 50,
+      sessionMinutes: 40,
       status: 'active',
       createdAt: created(5),
       milestones: [
-        milestone('q_film', 1, 'Two rolls shot', 'One colour, one black and white.', 6, 6, 'done'),
-        milestone('q_film', 2, 'Develop at home', 'C-41 kit, kitchen sink, no light leaks.', 5, 3, 'current'),
-        milestone('q_film', 3, 'Print six frames', 'Pick six, print them, put them on a wall.', 5, 0, 'locked'),
+        milestone('q_lift', 1, 'Show up', 'Three mornings, any weight, four weeks running.', 12, 12, 'done'),
+        milestone('q_lift', 2, 'A real program', 'Push, pull, legs. Written down. Followed.', 12, 7, 'current'),
+        milestone('q_lift', 3, 'Bodyweight bench', 'Once, clean, with a spotter.', 8, 0, 'locked'),
       ],
     },
   ];
@@ -298,11 +302,6 @@ const RECURRING: Record<UserId, MeetingTemplate[]> = {
   u_dhan: [
     { title: 'Standup', hour: 9, minute: 30, minutes: 15, attendees: 8 },
     { title: 'Campaign sync', hour: 12, minute: 0, minutes: 45, attendees: 5 },
-  ],
-  u_sid: [
-    { title: 'Standup', hour: 9, minute: 30, minutes: 15, attendees: 8 },
-    { title: 'Queue triage', hour: 11, minute: 30, minutes: 45, attendees: 4 },
-    { title: 'Customer call', hour: 15, minute: 30, minutes: 45, attendees: 3 },
   ],
 };
 
@@ -404,7 +403,6 @@ const SIGNAL_PROFILE: Record<UserId, [number, number, number]> = {
   u_ryan: [71, 7.6, 14.5],
   u_hank: [47, 6.2, 12.8],
   u_dhan: [63, 7.1, 9.6],
-  u_sid: [69, 7.4, 10.8],
 };
 
 /** Today for the viewer is pinned low so the "we scheduled nothing" beat lands. */
@@ -475,24 +473,26 @@ const HISTORY_SHAPE: Record<
   { weeks: number; perWeek: number; hitRate: number; quietWeeks: number }
 > = {
   q_guitar: { weeks: 5, perWeek: 2, hitRate: 0.82, quietWeeks: 0 },
-  q_half: { weeks: 6, perWeek: 3, hitRate: 0.93, quietWeeks: 0 },
+  q_swim: { weeks: 6, perWeek: 3, hitRate: 0.93, quietWeeks: 0 },
   q_cook: { weeks: 4, perWeek: 2, hitRate: 0.78, quietWeeks: 0 },
   q_run: { weeks: 3, perWeek: 2, hitRate: 0.74, quietWeeks: 0 },
-  // Ethan stopped two weeks ago. This is what generates the private check-in.
-  q_keeb: { weeks: 5, perWeek: 2, hitRate: 0.7, quietWeeks: 2 },
-  q_spanish: { weeks: 3, perWeek: 3, hitRate: 0.66, quietWeeks: 0 },
-  q_film: { weeks: 4, perWeek: 2, hitRate: 0.85, quietWeeks: 0 },
+  // Ethan stopped playing two weeks ago. This is what generates the private check-in.
+  q_piano: { weeks: 5, perWeek: 2, hitRate: 0.7, quietWeeks: 2 },
+  q_ride: { weeks: 1, perWeek: 1, hitRate: 1, quietWeeks: 0 },
+  q_hike: { weeks: 3, perWeek: 3, hitRate: 0.66, quietWeeks: 0 },
+  q_lift: { weeks: 5, perWeek: 3, hitRate: 0.8, quietWeeks: 0 },
 };
 
 /** Weekday + hour each quest historically landed on, so history looks like a habit. */
 const HISTORY_SLOTS: Record<string, Array<[number, number]>> = {
   q_guitar: [[2, 19], [4, 19], [6, 11]],
-  q_half: [[1, 7], [3, 7], [6, 8]],
+  q_swim: [[1, 6], [3, 6], [6, 8]],
   q_cook: [[3, 18], [0, 17], [5, 18]],
   q_run: [[2, 7], [5, 7], [0, 9]],
-  q_keeb: [[1, 20], [4, 20], [6, 14]],
-  q_spanish: [[1, 8], [2, 8], [4, 8]],
-  q_film: [[5, 16], [6, 10], [3, 18]],
+  q_piano: [[1, 20], [4, 20], [6, 14]],
+  q_ride: [[5, 17]],
+  q_hike: [[1, 8], [2, 8], [4, 8]],
+  q_lift: [[1, 7], [3, 7], [5, 7]],
 };
 
 export function buildWindowHistory(now: Date, quests: Quest[]): QuestWindow[] {
@@ -542,11 +542,12 @@ export function buildWindowHistory(now: Date, quests: Quest[]): QuestWindow[] {
 
 const POST_GLYPHS: Record<string, string[]> = {
   q_guitar: ['🎸', '🎵', '🎼'],
-  q_half: ['🏃', '👟', '🥵'],
+  q_swim: ['🏊', '🥽', '🏋️'],
   q_cook: ['🍝', '🍳', '🥘'],
-  q_keeb: ['⌨️', '🔧', '🔌'],
-  q_spanish: ['🥾', '🌲', '🗺️'],
-  q_film: ['📷', '🎞️', '🖼️'],
+  q_piano: ['🎹', '🎼', '🎵'],
+  q_ride: ['🐎', '🏖️', '🌅'],
+  q_hike: ['🥾', '🌲', '🗺️'],
+  q_lift: ['🏋️', '💪', '🌅'],
 };
 
 interface PostSeed {
@@ -576,38 +577,38 @@ const POST_SEEDS: PostSeed[] = [
     body: 'Out before the meetings started. Thirty minutes, slow, and the rest of the day owes me nothing.',
     photo: '/posts/travis-run.jpg',
     minutes: 30,
-    cheers: ['u_ryan', 'u_sid', 'u_hank'],
+    cheers: ['u_ryan', 'u_hank', 'u_dhan'],
   },
   {
-    questId: 'q_spanish',
-    daysAgo: 2,
-    hour: 10,
-    kind: 'progress',
-    body: 'Third loop done. Two years here and I had never been up this side of the Fells.',
-    photo: '/posts/dhan-hike.jpg',
-    minutes: 95,
-    cheers: ['u_travis', 'u_ethan', 'u_ryan', 'u_sid'],
-  },
-  {
-    // The one post carrying a photo the team has actually sent, so the feed's
-    // photo layout is real on stage rather than six fallback tiles.
-    questId: 'q_run',
+    questId: 'q_swim',
     daysAgo: 1,
-    hour: 20,
+    hour: 6,
     kind: 'progress',
-    body: 'Swapped the run for legs. Calves have been complaining all week and this hurts less tomorrow.',
-    photo: '/posts/inbox-1.jpeg',
+    body: 'Pool was closed so it was dryland at six. Not the same thing. Still counts.',
+    photo: '/posts/ryan-gym.jpg',
+    minutes: 45,
+    cheers: ['u_travis', 'u_hank', 'u_dhan'],
+  },
+  {
+    questId: 'q_lift',
+    daysAgo: 1,
+    hour: 7,
+    kind: 'progress',
+    body: 'Legs before the incident review. Calves have been complaining all week and this hurts less tomorrow.',
+    photo: '/posts/henk-gym.jpg',
     minutes: 40,
     cheers: ['u_ryan', 'u_ethan', 'u_dhan'],
   },
   {
-    questId: 'q_half',
+    questId: 'q_ride',
     daysAgo: 1,
-    hour: 8,
-    kind: 'progress',
-    body: '16km done before the standup. The second hour is still where it gets stupid, but I fuelled it right this time.',
-    minutes: 96,
-    cheers: ['u_travis', 'u_sid', 'u_ethan', 'u_dhan'],
+    hour: 17,
+    kind: 'milestone',
+    body: 'Back in the saddle. First time on a horse since I was twelve, and it happened to be on a beach.',
+    photo: '/posts/ethan-ride.jpg',
+    minutes: 60,
+    milestoneTitle: 'Back in the saddle',
+    cheers: ['u_travis', 'u_ryan', 'u_hank', 'u_dhan'],
   },
   {
     questId: 'q_cook',
@@ -615,19 +616,41 @@ const POST_SEEDS: PostSeed[] = [
     hour: 19,
     kind: 'progress',
     body: 'First pasta dough that did not fight me. Rolled it by hand, which took twice as long and was twice as good.',
-    photo: '/posts/hank-cooking.jpg',
+    photo: '/posts/henk-cooking.jpg',
     minutes: 65,
-    cheers: ['u_ryan', 'u_travis', 'u_sid'],
+    cheers: ['u_ryan', 'u_travis', 'u_dhan'],
   },
   {
-    questId: 'q_film',
+    questId: 'q_hike',
     daysAgo: 2,
-    hour: 17,
+    hour: 10,
+    kind: 'progress',
+    body: 'Third loop done. Two years here and I had never been up this side of the Fells.',
+    photo: '/posts/dayanandh-hike.jpg',
+    minutes: 95,
+    cheers: ['u_travis', 'u_ethan', 'u_ryan'],
+  },
+  {
+    // A rest post is a real post here. Skipping the run for the roast was the
+    // agent's call, and the feed treats it as a win, not a lapse.
+    questId: 'q_run',
+    daysAgo: 3,
+    hour: 21,
+    kind: 'rest',
+    body: 'Recovery was 38 so SideQuest pulled tonight’s run. Went to the roast instead. Correct call.',
+    photo: '/posts/travis-roast.jpg',
+    cheers: ['u_ethan', 'u_ryan', 'u_dhan', 'u_hank'],
+  },
+  {
+    questId: 'q_swim',
+    daysAgo: 4,
+    hour: 9,
     kind: 'milestone',
-    body: 'Developed my first roll at home. Two frames are ruined and I do not care.',
-    minutes: 50,
-    milestoneTitle: 'Develop at home',
-    cheers: ['u_travis', 'u_ethan', 'u_ryan', 'u_hank', 'u_dhan'],
+    body: 'First meet in four years. Lane 7, 100 free, slower than I was at seventeen and I do not care.',
+    photo: '/posts/ryan-meet.jpg',
+    minutes: 150,
+    milestoneTitle: 'Enter one meet',
+    cheers: ['u_travis', 'u_ethan', 'u_hank', 'u_dhan'],
   },
   {
     questId: 'q_guitar',
@@ -636,11 +659,11 @@ const POST_SEEDS: PostSeed[] = [
     kind: 'progress',
     body: 'Talking to the Moon, verse and chorus, 70bpm, no stopping. Slow is fine. Slow is the whole trick.',
     minutes: 45,
-    cheers: ['u_ryan', 'u_sid', 'u_ethan'],
+    cheers: ['u_ryan', 'u_ethan'],
   },
   {
-    questId: 'q_spanish',
-    daysAgo: 3,
+    questId: 'q_hike',
+    daysAgo: 5,
     hour: 8,
     kind: 'progress',
     body: 'Early loop before work. Forty minutes and I still got to my desk before anyone else.',
@@ -648,30 +671,12 @@ const POST_SEEDS: PostSeed[] = [
     cheers: ['u_travis', 'u_hank'],
   },
   {
-    questId: 'q_half',
-    daysAgo: 4,
+    questId: 'q_swim',
+    daysAgo: 6,
     hour: 7,
     kind: 'rest',
-    body: 'Recovery was 34 so SideQuest pulled today’s run and gave me the morning back. Took the morning back.',
+    body: 'Recovery was 34 so SideQuest pulled this morning’s swim and gave me the morning back.',
     cheers: ['u_ethan', 'u_travis'],
-  },
-  {
-    questId: 'q_keeb',
-    daysAgo: 14,
-    hour: 20,
-    kind: 'progress',
-    body: 'Sixty-eight switches soldered, zero bridges. Firmware next week.',
-    minutes: 45,
-    cheers: ['u_travis', 'u_ryan', 'u_ethan', 'u_sid'],
-  },
-  {
-    questId: 'q_film',
-    daysAgo: 6,
-    hour: 16,
-    kind: 'progress',
-    body: 'Shot a roll walking to work instead of listening to a podcast. Noticed about forty things I walk past daily.',
-    minutes: 50,
-    cheers: ['u_dhan', 'u_travis'],
   },
   {
     questId: 'q_cook',
@@ -681,7 +686,7 @@ const POST_SEEDS: PostSeed[] = [
     body: 'Four braises down. The short rib one is going in the permanent rotation.',
     minutes: 70,
     milestoneTitle: 'Four braises',
-    cheers: ['u_ryan', 'u_sid', 'u_hank'],
+    cheers: ['u_ryan', 'u_travis'],
   },
   {
     questId: 'q_guitar',
@@ -691,6 +696,18 @@ const POST_SEEDS: PostSeed[] = [
     body: 'Chord changes are clean now. Six weeks ago I could not get from G to C without looking.',
     minutes: 45,
     cheers: ['u_ethan', 'u_ryan'],
+  },
+  {
+    // Ethan's last piano session. Fifteen days old on purpose — it is the
+    // silence after this post that triggers the private check-in.
+    questId: 'q_piano',
+    daysAgo: 15,
+    hour: 20,
+    kind: 'progress',
+    body: 'Left hand finally knows the first page without me watching it.',
+    photo: '/posts/ethan-piano.jpg',
+    minutes: 45,
+    cheers: ['u_travis', 'u_ryan', 'u_hank'],
   },
 ];
 
