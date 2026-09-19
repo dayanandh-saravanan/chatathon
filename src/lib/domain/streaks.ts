@@ -68,7 +68,7 @@ export function computeStreak(
   let health: QuestStreak['health'];
   if (silent) health = 'quiet';
   else if (adherence >= 0.8) health = 'thriving';
-  else if (adherence >= 0.35 || quietDays <= 4) health = 'steady';
+  else if (adherence >= 0.35 || (quietDays !== null && quietDays <= 4)) health = 'steady';
   else health = 'slipping';
 
   return {
