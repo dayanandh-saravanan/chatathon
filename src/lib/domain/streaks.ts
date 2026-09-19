@@ -60,8 +60,13 @@ export function computeStreak(
       ? Math.min(1.5, minutesThisWeek / quest.weeklyMinutesTarget)
       : 0;
 
+  // A quest with no sessions yet is only "quiet" once it has had a fair chance:
+  // ten days after it was set up. Before that it is simply new.
+  const ageDays = daysAgo(quest.createdAt, now);
+  const silent = quietDays === null ? ageDays >= 10 : quietDays >= 10;
+
   let health: QuestStreak['health'];
-  if (quietDays === null || quietDays >= 10) health = 'quiet';
+  if (silent) health = 'quiet';
   else if (adherence >= 0.8) health = 'thriving';
   else if (adherence >= 0.35 || quietDays <= 4) health = 'steady';
   else health = 'slipping';

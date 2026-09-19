@@ -1,4 +1,5 @@
 import AgentDock from '@/components/agent/agent-panel';
+import { RouteGate } from '@/components/route-gate';
 import { AppShell } from '@/components/sidequest-sidebar';
 import { ensureSeeded, getConversation, getViewer } from '@/lib/data/service';
 
@@ -20,7 +21,10 @@ export default async function AppLayout({
   return (
     <>
       <AppShell viewer={viewer}>{children}</AppShell>
-      <AgentDock viewerName={viewer.name} initialMessages={conversation} />
+      {/* On /quests the agent is the page itself, so the dock stays out of the way. */}
+      <RouteGate hideOn={['/quests']}>
+        <AgentDock viewerName={viewer.name} initialMessages={conversation} />
+      </RouteGate>
     </>
   );
 }

@@ -30,13 +30,23 @@ const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL?.trim() || 'claude-sonnet-5'
  * hundred tokens and still short enough that a stall looks like a pause rather
  * than a hang.
  */
-const REQUEST_TIMEOUT_MS = 20_000;
+/**
+ * Short on purpose. A turn can make three model calls in a row (draft, plan,
+ * narration); at twenty seconds each a bad minute at Gemini left the agent
+ * "thinking" for longer than the demo. Nine seconds keeps the worst turn under
+ * half a minute, and the deterministic planner covers whatever the model misses.
+ */
+const REQUEST_TIMEOUT_MS = 9_000;
+/** After a timeout or 5xx, skip Gemini for this long rather than paying it again on every call. */
+const GEMINI_COOLDOWN_MS = 60_000;
+let geminiCooldownUntil = 0;
 
 function geminiKey(): string | undefined {
   // GOOGLE_GENAI_API_KEY is the name we read first on purpose: some shells
   // export a literal, unexpanded `${GEMINI_API_KEY}` placeholder, which makes
   // dotenv-expand recurse and causes Next to silently discard all of
   // `.env.local`. Using a different name sidesteps that collision entirely.
+  if (Date.now() < geminiCooldownUntil) return undefined;
   const raw = process.env.GOOGLE_GENAI_API_KEY ?? process.env.GEMINI_API_KEY;
   const key = raw?.trim();
   // Ignore an unexpanded shell placeholder rather than sending it upstream.
@@ -187,6 +197,9 @@ async function geminiAttempt(
       if (!rejected || thinking === 'default') {
         warn('gemini', `HTTP ${response.status}`);
       }
+      if (response.status >= 500 || response.status === 429) {
+        geminiCooldownUntil = Date.now() + GEMINI_COOLDOWN_MS;
+      }
       return { text: null, rejected };
     }
 
@@ -204,7 +217,9 @@ async function geminiAttempt(
 
     return { text };
   } catch (error) {
-    warn('gemini', describe(error));
+    const reason = describe(error);
+    warn('gemini', reason);
+    if (reason === 'timeout') geminiCooldownUntil = Date.now() + GEMINI_COOLDOWN_MS;
     return { text: null, rejected: false };
   } finally {
     clearTimeout(timer);
