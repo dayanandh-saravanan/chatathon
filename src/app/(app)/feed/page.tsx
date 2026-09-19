@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Plus } from 'lucide-react';
 
 import { PostCard } from '@/components/feed/post-card';
-import { getFeed, VIEWER_ID } from '@/lib/data/service';
+import { getFeed, getMembers, VIEWER_ID } from '@/lib/data/service';
 import { timeAgo } from '@/lib/domain/time';
 
 export const metadata = {
@@ -13,7 +13,9 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function FeedPage() {
-  const feed = await getFeed();
+  const [all, members] = await Promise.all([getFeed(), getMembers()]);
+  // The feed is photos. A post that never got one is not a card.
+  const feed = all.filter((e) => Boolean(e.post.photoUrl));
 
   // One clock for the whole render keeps every "2d ago" mutually consistent.
   const now = new Date();
@@ -54,6 +56,7 @@ export default async function FeedPage() {
               questTitle={quest?.title}
               postedAgo={timeAgo(post.createdAt, now)}
               viewerId={VIEWER_ID}
+              members={members}
             />
           ))}
         </div>

@@ -114,7 +114,8 @@ export function PostComposer({ quests }: PostComposerProps) {
   }
 
   const parsedMinutes = Number.parseInt(minutes, 10);
-  const canPost = Boolean(questId) && body.trim().length > 0 && !pending && !uploading;
+  // A post is a photo. No picture, no post.
+  const canPost = Boolean(questId) && Boolean(photoUrl) && body.trim().length > 0 && !pending && !uploading;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -308,32 +309,6 @@ export function PostComposer({ quests }: PostComposerProps) {
               />
             </div>
           ) : null}
-
-          {/* Fallback tile for anyone without a photo to hand. */}
-          {photoUrl ? null : (
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-xs text-muted-foreground">Tile instead</Label>
-              <div className="flex flex-wrap gap-1.5">
-                {GLYPHS[kind].map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setGlyph(option)}
-                    aria-label={`Use ${option}`}
-                    aria-pressed={glyph === option}
-                    className={cn(
-                      'grid size-8 place-items-center rounded-md border text-base animate-smooth',
-                      glyph === option
-                        ? 'border-primary/35 bg-primary/10'
-                        : 'border-border bg-white/55 hover:border-primary/20',
-                    )}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

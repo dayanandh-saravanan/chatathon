@@ -557,12 +557,10 @@ interface PostSeed {
   kind: Post['kind'];
   body: string;
   /**
-   * A string is a file already sitting in `public/posts`. `true` claims the
-   * conventional `/posts/<id>.jpg` path for a photo the team has not sent yet
-   * — the feed's tile falls back to the glyph on a 404, so claiming it early
-   * costs nothing and the post lights up the moment the file lands.
+   * A file in `public/posts`. Every seeded post carries one: the feed is
+   * photos, and a post without a picture is not shown.
    */
-  photo?: true | string;
+  photo: true | string;
   minutes?: number;
   milestoneTitle?: string;
   cheers: UserId[];
@@ -651,51 +649,6 @@ const POST_SEEDS: PostSeed[] = [
     minutes: 150,
     milestoneTitle: 'Enter one meet',
     cheers: ['u_travis', 'u_ethan', 'u_hank', 'u_dhan'],
-  },
-  {
-    questId: 'q_guitar',
-    daysAgo: 5,
-    hour: 19,
-    kind: 'progress',
-    body: 'Talking to the Moon, verse and chorus, 70bpm, no stopping. Slow is fine. Slow is the whole trick.',
-    minutes: 45,
-    cheers: ['u_ryan', 'u_ethan'],
-  },
-  {
-    questId: 'q_hike',
-    daysAgo: 5,
-    hour: 8,
-    kind: 'progress',
-    body: 'Early loop before work. Forty minutes and I still got to my desk before anyone else.',
-    minutes: 40,
-    cheers: ['u_travis', 'u_hank'],
-  },
-  {
-    questId: 'q_swim',
-    daysAgo: 6,
-    hour: 7,
-    kind: 'rest',
-    body: 'Recovery was 34 so SideQuest pulled this morning’s swim and gave me the morning back.',
-    cheers: ['u_ethan', 'u_travis'],
-  },
-  {
-    questId: 'q_cook',
-    daysAgo: 7,
-    hour: 18,
-    kind: 'milestone',
-    body: 'Four braises down. The short rib one is going in the permanent rotation.',
-    minutes: 70,
-    milestoneTitle: 'Four braises',
-    cheers: ['u_ryan', 'u_travis'],
-  },
-  {
-    questId: 'q_guitar',
-    daysAgo: 9,
-    hour: 19,
-    kind: 'progress',
-    body: 'Chord changes are clean now. Six weeks ago I could not get from G to C without looking.',
-    minutes: 45,
-    cheers: ['u_ethan', 'u_ryan'],
   },
   {
     // Ethan's last piano session. Fifteen days old on purpose — it is the

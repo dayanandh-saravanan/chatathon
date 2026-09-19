@@ -1,6 +1,7 @@
 import { QuestStudio } from '@/components/quests/quest-studio';
 import type { RingPhoto } from '@/components/quests/quest-studio';
-import { getConversation, getFeed, getMembers, getSnapshot } from '@/lib/data/service';
+import { getConversation, getFeed, getMembers, getSnapshot, VIEWER_ID } from '@/lib/data/service';
+import { timeAgo } from '@/lib/domain/time';
 
 /**
  * The landing page is the agent. It opens on the team's photos orbiting the
@@ -26,11 +27,11 @@ export default async function QuestsPage() {
     getConversation(),
   ]);
 
-  // Real photos first, then glyph posts to fill the ring if the team is short.
-  const photos: RingPhoto[] = [
-    ...feed.filter((e) => e.post.photoUrl),
-    ...feed.filter((e) => !e.post.photoUrl),
-  ]
+  const now = new Date();
+
+  // Only real photos orbit the orb.
+  const photos: RingPhoto[] = feed
+    .filter((e) => Boolean(e.post.photoUrl))
     .slice(0, RING_SIZE)
     .map((e) => {
       const author = e.author.name.split(' ')[0];
@@ -41,11 +42,16 @@ export default async function QuestsPage() {
         alt: `${author}'s post${e.quest ? ` about ${e.quest.title}` : ''}`,
         authorName: author,
         questTitle: e.quest?.title,
+        post: e.post,
+        author: e.author,
+        postedAgo: timeAgo(e.post.createdAt, now),
       };
     });
 
   return (
     <QuestStudio
+      viewerId={VIEWER_ID}
+      members={members}
       teammates={members.filter((m) => m.id !== snapshot.member.id)}
       quests={snapshot.quests}
       streaks={snapshot.streaks}

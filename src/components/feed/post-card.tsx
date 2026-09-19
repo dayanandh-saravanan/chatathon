@@ -1,7 +1,11 @@
+'use client';
+
 import { Moon, RotateCcw, Sparkles } from 'lucide-react';
+import { useState } from 'react';
 
 import { Avatar } from '@/components/avatar';
 import { CheerButton } from '@/components/feed/cheer-button';
+import { PostDialog } from '@/components/feed/post-dialog';
 import { PhotoTile } from '@/components/feed/photo-tile';
 import type { Post, PostKind, TeamMember, UserId } from '@/lib/domain/types';
 import { durationLabel } from '@/lib/domain/time';
@@ -36,25 +40,37 @@ interface PostCardProps {
   /** Pre-rendered on the server so every card agrees on what "now" was. */
   postedAgo: string;
   viewerId: UserId;
+  /** For the opened view, so cheers show as faces. */
+  members?: TeamMember[];
 }
 
-export function PostCard({ post, author, questTitle, postedAgo, viewerId }: PostCardProps) {
+export function PostCard({ post, author, questTitle, postedAgo, viewerId, members }: PostCardProps) {
   const mark = MARKS[post.kind];
   const firstName = author.name.split(' ')[0];
+  const [open, setOpen] = useState(false);
 
   return (
+    <>
     <article
       className={cn(
         'group flex flex-col overflow-hidden rounded-2xl border border-white/70 bg-card',
         'shadow-soft hover-lift animate-smooth ease-liquid',
       )}
     >
-      <PhotoTile
-        photoUrl={post.photoUrl}
-        glyph={post.glyph}
-        alt={`${firstName}: ${post.body}`}
-        className="aspect-square w-full"
-      />
+      {/* The photo and the words open the post; the footer keeps its own controls. */}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={`Open ${firstName}'s post`}
+        className="block w-full cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+      >
+        <PhotoTile
+          photoUrl={post.photoUrl}
+          glyph={post.glyph}
+          alt={`${firstName}: ${post.body}`}
+          className="aspect-square w-full"
+        />
+      </button>
 
       <div className="flex flex-col gap-1.5 p-2.5">
         <div className="flex items-center gap-2">
@@ -83,9 +99,13 @@ export function PostCard({ post, author, questTitle, postedAgo, viewerId }: Post
           ) : null}
         </div>
 
-        <p className="line-clamp-2 text-[13px] leading-snug text-foreground/85">
-          {post.body}
-        </p>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="cursor-pointer text-left focus:outline-none"
+        >
+          <p className="line-clamp-2 text-[13px] leading-snug text-foreground/85">{post.body}</p>
+        </button>
 
         <div className="flex items-center gap-2">
           {questTitle ? (
@@ -106,5 +126,17 @@ export function PostCard({ post, author, questTitle, postedAgo, viewerId }: Post
         </div>
       </div>
     </article>
+
+    <PostDialog
+      post={post}
+      author={author}
+      questTitle={questTitle}
+      postedAgo={postedAgo}
+      viewerId={viewerId}
+      members={members}
+      open={open}
+      onOpenChange={setOpen}
+    />
+    </>
   );
 }

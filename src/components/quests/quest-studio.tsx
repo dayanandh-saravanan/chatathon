@@ -8,12 +8,14 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import { MessageBubble, TypingBubble } from '@/components/agent/message-bubble';
 import { Avatar } from '@/components/avatar';
 import { PhotoTile } from '@/components/feed/photo-tile';
+import { PostDialog } from '@/components/feed/post-dialog';
 import { Orb } from '@/components/quests/orb';
 import { QuestCard } from '@/components/quests/quest-card';
 import { clockTime, dateKey, durationLabel, relativeDay } from '@/lib/domain/time';
 import type {
   AgentAction,
   AgentMessage,
+  Post,
   Quest,
   QuestStreak,
   QuestWindow,
@@ -43,9 +45,15 @@ export interface RingPhoto {
   alt: string;
   authorName: string;
   questTitle?: string;
+  /** The full post, so a tile can open. */
+  post: Post;
+  author: TeamMember;
+  postedAgo: string;
 }
 
 export interface QuestStudioProps {
+  viewerId: string;
+  members: TeamMember[];
   teammates: TeamMember[];
   quests: Quest[];
   streaks: Record<string, QuestStreak>;
@@ -110,6 +118,8 @@ function emptyStreak(quest: Quest): QuestStreak {
 }
 
 export function QuestStudio({
+  viewerId,
+  members,
   teammates,
   quests,
   streaks,
@@ -129,6 +139,7 @@ export function QuestStudio({
   // True for the beat between the agent's answer and the list: the photos
   // fall into the orb, then the new quest slides out of it.
   const [absorbing, setAbsorbing] = useState(false);
+  const [openPhoto, setOpenPhoto] = useState<RingPhoto | null>(null);
 
   // Ring geometry is measured on the client; nothing position-dependent is
   // rendered on the server so there is nothing to mismatch on hydration.
@@ -353,9 +364,12 @@ export function QuestStudio({
                           }
                           style={{ left: x, top: y, x: '-50%', y: '-50%' }}
                         >
-                          <motion.div
+                          <motion.button
+                            type="button"
+                            onClick={() => setOpenPhoto(photo)}
+                            aria-label={`Open ${photo.alt}`}
                             title={`${photo.authorName}${photo.questTitle ? ` · ${photo.questTitle}` : ''}`}
-                            className="relative overflow-hidden rounded-2xl p-1.5"
+                            className="relative cursor-pointer overflow-hidden rounded-2xl p-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                             style={{
                               background: 'rgba(255,255,255,0.4)',
                               backdropFilter: 'blur(30px) saturate(180%)',
@@ -378,7 +392,7 @@ export function QuestStudio({
                                 className="h-full w-full rounded-xl"
                               />
                             </div>
-                          </motion.div>
+                          </motion.button>
                         </motion.div>
                       );
                     })}
@@ -536,6 +550,19 @@ export function QuestStudio({
           )}
         </AnimatePresence>
       </div>
+
+      <PostDialog
+        post={openPhoto?.post ?? null}
+        author={openPhoto?.author}
+        questTitle={openPhoto?.questTitle}
+        postedAgo={openPhoto?.postedAgo}
+        viewerId={viewerId}
+        members={members}
+        open={openPhoto !== null}
+        onOpenChange={(next) => {
+          if (!next) setOpenPhoto(null);
+        }}
+      />
 
       {/* ---------------------------------------------------------------- bar */}
       <div className="mx-auto w-full max-w-3xl shrink-0 pt-3">
