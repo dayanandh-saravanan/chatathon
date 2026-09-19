@@ -13,6 +13,8 @@ export const dynamic = 'force-dynamic';
 
 const ChatBody = z.object({
   message: z.string().trim().min(1).max(2000),
+  /** First names of teammates pulled into the plan from the quest studio. */
+  with: z.array(z.string().trim().min(1).max(40)).max(8).optional(),
 });
 
 export async function POST(request: Request) {
@@ -24,7 +26,9 @@ export async function POST(request: Request) {
     }
 
     await ensureSeeded();
-    const message = await chatWithAgent(VIEWER_ID, parsed.data.message);
+    const message = await chatWithAgent(VIEWER_ID, parsed.data.message, {
+      with: parsed.data.with,
+    });
     return NextResponse.json({ message });
   } catch (error) {
     return NextResponse.json(

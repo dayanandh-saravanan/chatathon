@@ -67,6 +67,8 @@ export function computeStreak(
 
   let health: QuestStreak['health'];
   if (silent) health = 'quiet';
+  // Brand new and untouched is not slipping; it has not started.
+  else if (quietDays === null) health = 'steady';
   else if (adherence >= 0.8) health = 'thriving';
   else if (adherence >= 0.35 || (quietDays !== null && quietDays <= 4)) health = 'steady';
   else health = 'slipping';

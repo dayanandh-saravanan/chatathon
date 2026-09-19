@@ -104,7 +104,8 @@ function emptyStreak(quest: Quest): QuestStreak {
     minutesLastWeek: 0,
     sessionsThisWeek: 0,
     adherence: 0,
-    health: 'quiet',
+    // Matches the server: a quest with no sessions is new, not quiet.
+    health: 'steady',
   };
 }
 
@@ -125,6 +126,9 @@ export function QuestStudio({
   const [included, setIncluded] = useState<Set<string>>(() => new Set());
   const [newQuest, setNewQuest] = useState<Quest | null>(null);
   const [lastReply, setLastReply] = useState<AgentMessage | null>(null);
+  // True for the beat between the agent's answer and the list: the photos
+  // fall into the orb, then the new quest slides out of it.
+  const [absorbing, setAbsorbing] = useState(false);
 
   // Ring geometry is measured on the client; nothing position-dependent is
   // rendered on the server so there is nothing to mismatch on hydration.
@@ -205,7 +209,7 @@ export function QuestStudio({
       const res = await fetch('/api/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ message: text, with: names }),
       });
       if (!res.ok) throw new Error(`Request failed with ${res.status}`);
       const { message } = (await res.json()) as { message: AgentMessage };
@@ -216,6 +220,10 @@ export function QuestStudio({
         setNewQuest(drafted.quest);
         setLastReply(message);
         setIncluded(new Set());
+        // Let the ring collapse into the orb before the list takes over.
+        setAbsorbing(true);
+        await new Promise((r) => setTimeout(r, 750));
+        setAbsorbing(false);
         setMode('list');
       } else {
         setMode('thread');
@@ -297,9 +305,14 @@ export function QuestStudio({
               <div className="relative" style={{ width: stage, height: stage }}>
                 {/* centre */}
                 <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-                  <Orb size={orbSize} active={pending} />
+                  <motion.div
+                    animate={absorbing ? { scale: 1.35 } : { scale: 1 }}
+                    transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+                  >
+                    <Orb size={orbSize} active={pending || absorbing} />
+                  </motion.div>
                   <motion.p
-                    key={pending ? `t${phrase}` : 'idle'}
+                    key={absorbing ? 'made' : pending ? `t${phrase}` : 'idle'}
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: [0.55, 1, 0.55], y: 0 }}
                     transition={{
@@ -308,7 +321,7 @@ export function QuestStudio({
                     }}
                     className="mt-5 whitespace-nowrap bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--secondary))] to-[hsl(var(--primary))] bg-clip-text text-[15px] font-semibold text-transparent"
                   >
-                    {pending ? `${THINKING[phrase]}…` : PROMPT}
+                    {absorbing ? 'Quest made' : pending ? `${THINKING[phrase]}…` : PROMPT}
                   </motion.p>
                 </div>
 
@@ -325,11 +338,19 @@ export function QuestStudio({
                           key={photo.id}
                           className="absolute"
                           initial={{ opacity: 0, scale: 0.3 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{
-                            opacity: { duration: 0.4, delay: 0.05 * i },
-                            scale: { duration: 0.5, delay: 0.05 * i, ease: [0.34, 1.56, 0.64, 1] },
-                          }}
+                          animate={
+                            absorbing
+                              ? { opacity: 0, scale: 0.15, left: c, top: c }
+                              : { opacity: 1, scale: 1 }
+                          }
+                          transition={
+                            absorbing
+                              ? { duration: 0.6, delay: 0.02 * i, ease: [0.4, 0, 0.2, 1] }
+                              : {
+                                  opacity: { duration: 0.4, delay: 0.05 * i },
+                                  scale: { duration: 0.5, delay: 0.05 * i, ease: [0.34, 1.56, 0.64, 1] },
+                                }
+                          }
                           style={{ left: x, top: y, x: '-50%', y: '-50%' }}
                         >
                           <motion.div
@@ -454,7 +475,7 @@ export function QuestStudio({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35, ease: EASE_LIQUID }}
-              className="absolute inset-0 overflow-y-auto pb-4 pr-1 pt-3"
+              className="absolute inset-0 overflow-y-auto px-2 pb-4 pt-4"
             >
               {lastReply && (
                 <div className="glass-card mb-4 flex items-start gap-3 rounded-2xl px-4 py-3">
@@ -479,11 +500,24 @@ export function QuestStudio({
                     <motion.div
                       key={quest.id}
                       layout
-                      initial={isNew ? { opacity: 0, y: -14, scale: 0.98 } : { opacity: 0, y: 8 }}
+                      initial={isNew ? { opacity: 0, y: -40, scale: 0.94 } : { opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ duration: 0.4, delay: isNew ? 0 : 0.04 * i, ease: EASE_LIQUID }}
+                      transition={{
+                        duration: isNew ? 0.55 : 0.4,
+                        delay: isNew ? 0 : 0.06 + 0.04 * i,
+                        ease: isNew ? [0.34, 1.56, 0.64, 1] : EASE_LIQUID,
+                      }}
                       className={cn('relative', isNew && 'rounded-3xl ring-2 ring-primary/40 ring-offset-2 ring-offset-white')}
                     >
+                      {isNew && (
+                        <motion.span
+                          aria-hidden
+                          className="pointer-events-none absolute -inset-1 rounded-[28px]"
+                          initial={{ opacity: 0.9, boxShadow: '0 0 0 0 rgba(155,135,245,0.55)' }}
+                          animate={{ opacity: 0, boxShadow: '0 0 0 22px rgba(155,135,245,0)' }}
+                          transition={{ duration: 1.1, ease: 'easeOut', delay: 0.25 }}
+                        />
+                      )}
                       {isNew && (
                         <span className="absolute -top-2.5 left-5 z-10 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white shadow-soft">
                           New

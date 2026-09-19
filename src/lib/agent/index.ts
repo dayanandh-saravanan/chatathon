@@ -380,16 +380,29 @@ async function buildReply(
   return { draft: generalDraft(snapshot, quest, nudge), facts, actions: [{ type: 'none' }] };
 }
 
-export async function chatWithAgent(userId: UserId, message: string): Promise<AgentMessage> {
+export interface ChatOptions {
+  /** Teammates the member pulled into the plan. Context for the reply, never part of the goal text. */
+  with?: string[];
+}
+
+export async function chatWithAgent(
+  userId: UserId,
+  message: string,
+  options: ChatOptions = {},
+): Promise<AgentMessage> {
   const repo = await getRepository();
   const asked = new Date();
   const trimmed = message.trim();
+  const companions = (options.with ?? []).map((n) => n.trim()).filter(Boolean);
+  const companionLine =
+    companions.length > 0 ? `with ${companions.join(' and ')}` : null;
 
+  // The stored turn shows who was included; the drafter only ever sees the goal.
   await repo.insertMessage(
     {
       id: `m_${asked.getTime().toString(36)}_u`,
       role: 'user',
-      content: trimmed,
+      content: companionLine ? `${trimmed} — ${companionLine}` : trimmed,
       createdAt: iso(asked),
     },
     userId,
@@ -409,6 +422,9 @@ export async function chatWithAgent(userId: UserId, message: string): Promise<Ag
     snapshot,
     nudge,
   );
+  if (companionLine) {
+    facts.push(`They asked to do this ${companionLine} — use exactly those names, mention it once, and do not invent plans for anyone else.`);
+  }
 
   // The model gets the finished answer and the numbers behind it, and is asked
   // for a better sentence. If it declines, is slow, or is not configured, the
