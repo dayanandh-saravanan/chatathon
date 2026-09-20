@@ -72,8 +72,11 @@ export async function resolveVoice(): Promise<{ id: string; name: string } | nul
     const voices = listing.voices ?? [];
     if (voices.length === 0) return null;
 
+    // Library names carry descriptors ("Sarah - Mature, Reassuring"), so match
+    // on the leading name rather than the whole string.
+    const leading = (name: string) => name.split(/\s[-–—]\s/)[0].trim().toLowerCase();
     const preferred = PREFERRED_VOICE_NAMES.map((name) =>
-      voices.find((v) => v.name.toLowerCase() === name.toLowerCase()),
+      voices.find((v) => leading(v.name) === name.toLowerCase()),
     ).find(Boolean);
     const pick = preferred ?? voices.find((v) => v.category === 'premade') ?? voices[0];
 
