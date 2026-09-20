@@ -9,9 +9,15 @@ import 'server-only';
  */
 
 const ELEVENLABS_ENDPOINT = 'https://api.elevenlabs.io/v1/text-to-speech';
+const VOICES_ENDPOINT = 'https://api.elevenlabs.io/v1/voices';
 
-/** Rachel — ElevenLabs' default shared voice, calm and unhurried. */
-const DEFAULT_VOICE_ID = '21m00Tcm4TlvDq8ikWAM';
+/**
+ * Nobody on the team has a voice picked, so when `ELEVENLABS_VOICE_ID` is
+ * unset the account's own voice list is consulted once and the calmest
+ * familiar name wins. The lookup is cached for the life of the process.
+ */
+const PREFERRED_VOICE_NAMES = ['Sarah', 'Rachel', 'Matilda', 'Alice', 'Lily', 'Aria', 'Laura'];
+let resolvedVoice: { id: string; name: string } | null = null;
 
 const MODEL_ID = 'eleven_turbo_v2_5';
 const REQUEST_TIMEOUT_MS = 20_000;
@@ -30,12 +36,55 @@ function apiKey(): string | undefined {
   return key ? key : undefined;
 }
 
-function voiceId(): string {
-  return process.env.ELEVENLABS_VOICE_ID?.trim() || DEFAULT_VOICE_ID;
-}
-
 export function isVoiceEnabled(): boolean {
   return Boolean(apiKey());
+}
+
+interface VoiceListing {
+  voices?: Array<{ voice_id: string; name: string; category?: string }>;
+}
+
+/**
+ * The voice to speak with: the configured id, else one chosen from the
+ * account. Returns `null` only when there is no key or the list could not be
+ * fetched, in which case the agent simply stays silent.
+ */
+export async function resolveVoice(): Promise<{ id: string; name: string } | null> {
+  const key = apiKey();
+  if (!key) return null;
+
+  const configured = process.env.ELEVENLABS_VOICE_ID?.trim();
+  if (configured) return { id: configured, name: 'configured' };
+  if (resolvedVoice) return resolvedVoice;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(VOICES_ENDPOINT, {
+      headers: { 'xi-api-key': key },
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      console.warn(`[sidequest] could not list voices: HTTP ${response.status}`);
+      return null;
+    }
+    const listing = (await response.json()) as VoiceListing;
+    const voices = listing.voices ?? [];
+    if (voices.length === 0) return null;
+
+    const preferred = PREFERRED_VOICE_NAMES.map((name) =>
+      voices.find((v) => v.name.toLowerCase() === name.toLowerCase()),
+    ).find(Boolean);
+    const pick = preferred ?? voices.find((v) => v.category === 'premade') ?? voices[0];
+
+    resolvedVoice = { id: pick.voice_id, name: pick.name };
+    return resolvedVoice;
+  } catch (error) {
+    console.warn('[sidequest] could not list voices:', describe(error));
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /** Cut on a sentence boundary where there is one, so speech never stops mid-word. */
@@ -65,11 +114,14 @@ export async function synthesize(text: string): Promise<ArrayBuffer | null> {
   const spoken = trim(text);
   if (!spoken) return null;
 
+  const voice = await resolveVoice();
+  if (!voice) return null;
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${ELEVENLABS_ENDPOINT}/${encodeURIComponent(voiceId())}`, {
+    const response = await fetch(`${ELEVENLABS_ENDPOINT}/${encodeURIComponent(voice.id)}`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',

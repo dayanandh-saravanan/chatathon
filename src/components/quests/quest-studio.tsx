@@ -6,11 +6,13 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 
 import { MessageBubble, TypingBubble } from '@/components/agent/message-bubble';
+import { VoiceToggle } from '@/components/agent/voice-toggle';
 import { Avatar } from '@/components/avatar';
 import { PhotoTile } from '@/components/feed/photo-tile';
 import { PostDialog } from '@/components/feed/post-dialog';
 import { Orb } from '@/components/quests/orb';
 import { QuestCard } from '@/components/quests/quest-card';
+import { useAgentVoice } from '@/lib/agent/use-voice';
 import { clockTime, dateKey, durationLabel, relativeDay } from '@/lib/domain/time';
 import type {
   AgentAction,
@@ -127,6 +129,7 @@ export function QuestStudio({
   initialMessages,
 }: QuestStudioProps) {
   const router = useRouter();
+  const voice = useAgentVoice();
 
   const [mode, setMode] = useState<Mode>('orb');
   const [messages, setMessages] = useState<AgentMessage[]>(initialMessages);
@@ -225,6 +228,7 @@ export function QuestStudio({
       if (!res.ok) throw new Error(`Request failed with ${res.status}`);
       const { message } = (await res.json()) as { message: AgentMessage };
       setMessages((m) => [...m, message]);
+      void voice.speak(message.content);
 
       const drafted = message.actions?.find((a) => a.type === 'quest-drafted');
       if (drafted && drafted.type === 'quest-drafted') {
@@ -268,6 +272,7 @@ export function QuestStudio({
       {/* ------------------------------------------------------------ top row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+          <VoiceToggle voice={voice} />
           {mode !== 'orb' ? (
             <button
               type="button"

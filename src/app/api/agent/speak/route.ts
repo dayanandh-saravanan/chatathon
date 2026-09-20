@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { VOICE_AUDIO_TYPE, isVoiceEnabled, synthesize } from '@/lib/agent/voice';
+import { VOICE_AUDIO_TYPE, isVoiceEnabled, resolveVoice, synthesize } from '@/lib/agent/voice';
 
 /**
  * Speak an agent reply aloud.
@@ -42,5 +42,9 @@ export async function POST(request: Request) {
 
 /** Lets the client decide whether to show a speak control at all. */
 export async function GET() {
-  return NextResponse.json({ available: isVoiceEnabled() });
+  if (!isVoiceEnabled()) return NextResponse.json({ available: false });
+  const voice = await resolveVoice();
+  return NextResponse.json(
+    voice ? { available: true, voice: voice.name } : { available: false },
+  );
 }

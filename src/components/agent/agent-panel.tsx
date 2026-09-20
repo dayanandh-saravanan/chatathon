@@ -8,7 +8,10 @@ import type { ReactNode, Ref } from 'react';
 
 import { AgentLauncher } from '@/components/agent/agent-launcher';
 import { MessageBubble, TypingBubble } from '@/components/agent/message-bubble';
+import { VoiceToggle } from '@/components/agent/voice-toggle';
 import { Textarea } from '@/components/ui/textarea';
+import { useAgentVoice } from '@/lib/agent/use-voice';
+import type { AgentVoice } from '@/lib/agent/use-voice';
 import { clockTime, dayLabel, durationLabel, shortDate } from '@/lib/domain/time';
 import type { AgentAction, AgentMessage } from '@/lib/domain/types';
 import { cn } from '@/lib/utils';
@@ -40,6 +43,7 @@ export interface AgentDockProps {
  */
 export default function AgentDock({ viewerName, initialMessages = [] }: AgentDockProps) {
   const router = useRouter();
+  const voice = useAgentVoice();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<AgentMessage[]>(initialMessages);
   const [draft, setDraft] = useState('');
@@ -128,6 +132,7 @@ export default function AgentDock({ viewerName, initialMessages = [] }: AgentDoc
       if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const data = (await res.json()) as { message: AgentMessage };
       setMessages((prev) => [...prev, data.message]);
+      void voice.speak(data.message.content);
       // The agent may have drafted a quest or booked windows; pull the page up to date.
       router.refresh();
     } catch {
@@ -175,7 +180,7 @@ export default function AgentDock({ viewerName, initialMessages = [] }: AgentDoc
                   'inset 0 0 90px -46px hsl(var(--primary) / 0.5), -16px 0 48px rgba(71, 85, 105, 0.14)',
               }}
             >
-              <PanelHeader onClose={close} />
+              <PanelHeader onClose={close} voice={voice} />
 
               <div
                 ref={scrollRef}
@@ -214,7 +219,7 @@ export default function AgentDock({ viewerName, initialMessages = [] }: AgentDoc
   );
 }
 
-function PanelHeader({ onClose }: { onClose: () => void }) {
+function PanelHeader({ onClose, voice }: { onClose: () => void; voice: AgentVoice }) {
   return (
     <header className="flex items-center gap-2.5 border-b border-border/60 px-5 py-3">
       <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary">
@@ -231,6 +236,7 @@ function PanelHeader({ onClose }: { onClose: () => void }) {
           Reads your calendar and recovery. Books what fits.
         </p>
       </div>
+      <VoiceToggle voice={voice} className="mr-1" />
       <button
         type="button"
         onClick={onClose}
